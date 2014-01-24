@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <stdio.h>
+#include <memory.h>
+
 #define MAX_EVENTS 1000
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
@@ -33,21 +35,23 @@ int main()
 		return 0;
 	}
 	
-	//监听web服务器
-	listenWeb = create_connection_to_web(conf.ipc);
-	if(listenWeb < 0)
-	{
-		simu_log->ERROR("IPC socket错误");
-		return 0;
-	}
-
 	epollfd = epoll_create(MAX_EVENTS);
-	
 	if(epollfd < 0)
 	{
 		simu_log->ERROR("EPOLL 错误");
 		return 0;
 	}
+	
+	//监听web服务器
+	listenWeb = create_connection_to_web(conf.webSocket);
+	if(listenWeb < 0)
+	{
+		simu_log->ERROR("IPC socket错误");
+		return 0;
+	}
+	socket_Not_In_Epoll.push(listenWeb);
+
+	
 
 	while(true)
 	{
@@ -55,6 +59,7 @@ int main()
 		struct epoll_event ev,events[MAX_EVENTS];
 		while(socket_Not_In_Epoll.size()!=0)
 		{
+			memset(ev,0,sizeof(ev));
 			int sock = socket_Not_In_Epoll.front();
 			socket_Not_In_Epoll.pop();
 			ev.events = EPOLLIN|EPOLLOUT|EPOLLRDHUP;
@@ -93,13 +98,15 @@ int main()
    				}
    				ev.events = EPOLLIN|EPOLLOUT|EPOLLRDHUP;
    				ev.data.fd = ret;
-   				center.webSocket.append(ret);
+   				
    				if(epoll_ctl(epollfd,EPOLL_CTL_ADD,ret,&ev) == -1)
    				{
    				
    					simu_log->ERROR("套接字(listenWeb) %d 加入EPOLL错误, 错误原因 %s ",ret,strerror(errno));
    					return 0;
    				}
+   				queue <string> tempQ;
+   				center.webSocket.append(make_pair(ret,tempQ));
 			}
 			
 			else

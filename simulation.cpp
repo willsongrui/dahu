@@ -1,5 +1,10 @@
 #include <simulation.h>
 #include <simu_structure.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 using namespace std;
 extern CCenter center;
@@ -9,16 +14,164 @@ extern LOG* simu_log;
 extern CConf conf;
 
 
+int load_config(string confFile)
+{
+	
+	xmlDocPtr pDoc = NULL;
+	xmlNodePtr pRoot = NULL;
+	xmlNodePtr curNode = NULL;
+
+	pDoc = xmlReadFile(confFile.c_str(), "UTF-8", XML_PARSE_REVOVER);
+	if(pDoc == NULL)
+	{
+		simu_log->ERROR("打开配置文件 %s 出错",confFile.c_str());
+		return -1;
+	}
+	pRoot = xmlDocGetRootElement(pDoc);
+	if(pRoot == NULL)
+	{
+		simu_log->ERROR("%s 是空文档（没有root节点）", confFile.c_str());
+		return -1;
+	}
+	if(xmlStrcmp(pRoot->name, BAD_CAST "config")!=0)
+	{
+		simu_log->ERROR("配置文件内容错误");
+		return -1;
+	}
+	
+	xmlXPathContextPtr context;
+	xmlXPathObjectPtr result;
+	context = xmlXPathNewContext(pDoc);
+	
+	if(context == NULL)
+	{
+		simu_log->ERROR("配置文件为空");
+		return -1;
+	}
+	result = xmlXPathEvalExpression("/config/logFile",context);
+	if(result == NULL)
+	{
+		simu_log->ERROR("logFile 错误");
+		return -1;
+	}
+	else
+	{
+		conf.logFile = result->nodesetval;
+	}
+	
+	result = xmlXPathEvalExpression("/config/webSocket",context);
+	if(result == NULL)
+	{
+		simu_log->ERROR("webSocket 错误");
+		return -1;
+	}
+	else
+	{
+		conf.webSocket = result->nodesetval;
+	}
+
+	result = xmlXPathEvalExpression("/config/ctiIP",context);
+	if(result == NULL)
+	{
+		simu_log->ERROR("ctiIP 错误");
+		return -1;
+	}
+	else
+	{
+		conf.ctiIP = result->nodesetval;
+	}
+
+	result = xmlXPathEvalExpression("/config/ctiPort",context);
+	if(result == NULL)
+	{
+		simu_log->ERROR("ctiPort 错误");
+		return -1;
+	}
+	else
+	{
+		conf.ctiPort = result->nodesetval;
+	}
+
+	result = xmlXPathEvalExpression("/config/vccID",context);
+	if(result == NULL)
+	{
+		simu_log->ERROR("vccID 错误");
+		return -1;
+	}
+	else
+	{
+		conf.vccID = result->nodesetval;
+	}
+
+	result = xmlXPathEvalExpression("/config/agentNum",context);
+	if(result == NULL)
+	{
+		simu_log->ERROR("agentNum 错误");
+		return -1;
+	}
+	else
+	{
+		conf.agentNum = result->nodesetval;
+	}
+
+	result = xmlXPathEvalExpression("/config/agentID",context);
+	if(result == NULL)
+	{
+		simu_log->ERROR("agentID 错误");
+		return -1;
+	}
+	else
+	{
+		conf.agentID = result->nodesetval;
+	}
+
+	simu_log->LOG("配置文件读取成功");
+	return 0;
+}
+
+int all_initial()
+{
+	
+}
+
+int handle_web_message(int sockFd,string message)
+{
+	if(message == "ALL_INITIAL")
+	{
+		return all_initial();
+	}
+	else if(message == "ALL_SIGNIN")
+	{
+		return all_signIn();
+	}
+	else if(message == "ALL_SETIDLE")
+	{
+		return all_setIdle();
+	}
+	else if(message == "ALL_SETBUSY")
+	{
+		return all_setBusy();
+	}
+	else if(message == "ALL_SIGNOUT")
+	{
+		return all_signOut();
+	}
+	else if(message == "ALL_REPORT")
+	{
+		return all_report();
+	}
+	else{
+		simu_log -> ERROR("不认识的命令: %s",message.c_str());
+		return -1;
+	}
+}
+
+
 int handle_message(int sockFd,string message)
 {
 	if(center.webSocket.find(sockFd)!=center.webSocket.end)		//webSocket是接收web命令的套接字
 	{
-		if(handle_web_message(sockFd,message) < 0)
-		{
-			simu_log->ERROR("error in heandle_web_message, sockFd:%d ,message:%s",sockFd,message);
-			return -1;
-		}
-		
+		return handle_web_message(sockFd,message);
 	}
 	else
 	{
@@ -34,7 +187,7 @@ int handle_message(int sockFd,string message)
 		}
 		
 	}
-	return 0;
+	
 }
 
 
@@ -95,10 +248,7 @@ int non_block_connect(string ip,int port)
 	return 0;
 }
 
-int load_config(string conf)
-{
 
-}
 int close_sock_in_epoll(int sockFd)
 {
 	if(EPOLL_CTL(epollfd,EPOLL_CTL_DEL,sockFd,NULL) < 0)
@@ -121,7 +271,7 @@ int close_sock_in_epoll(int sockFd)
 	}
 	else
 	{
-		agent->log("Socket Closed");
+		agent->LOG("Socket Closed");
 		agent->sockState = 0;
 		agent->preState = agent->curState;
 		agent->curState = LogOut;
@@ -129,3 +279,55 @@ int close_sock_in_epoll(int sockFd)
 	}
 	return 0;
 }
+
+int create_connection_to_web(string webSocket)
+{
+	sockFd = socket(AF_UNIX,SOCK_STREAM,0);
+	if(sockFd < 0)
+	{
+		simu_log->ERROR("创建web套接字失败,失败原因: %s",strerror(errno));
+		return -1;
+	}
+	int flags = fcntl(sockFd,F_GETFL);
+	if(flags < 0)
+	{
+		simu_log->ERROR("得到web套接字flag失败,失败原因: %s",strerror(errno));
+		return -1;	
+	}
+	if(fcntl(sockFd,F_SETFL,flags|O_NONBLOCK) < 0)
+	{
+		simu_log->ERROR("设置web套接字为非阻塞模式失败,失败原因: %s",strerror(errno));
+		return -1;
+	}
+	if(listen(sockFd,1000) < 0)
+	{
+		simu_log->ERROR("监听web套接字失败,错误原因: %s",strerror(errno));
+		return -1;
+	}
+	return sockFd;
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
