@@ -16,149 +16,192 @@ extern CConf conf;
 
 int load_config(string confFile)
 {
-	
-	xmlDocPtr pDoc = NULL;
-	xmlNodePtr pRoot = NULL;
-	xmlNodePtr curNode = NULL;
+	fs = open(confFile.c_str(),O_RDONLY);
+	if(fs < 0)
+	{
+		simu_log->ERROR("打开配置文件 %s 出错,错误原因: %s",confFile.c_str(),strerror(errno));
+		return -1;
+	}
+	char config[1000];
+	if(read(fs,config,sizeof(config)) < 0)
+	{
+		simu_log->ERROR("读取配置文件错误，错误原因%s",strerror(errno));
+		return -1;
+	}
+	xml_document<> doc;
+	try
+	{
+		doc.parse<0>(config);
+	}
+	catch (exception e)
+	{
+		simu_log->ERROR("配置文件格式错误");
+		return -1;
+	}
+	xml_node<>* root;
+	xml_node<>* logFile;
+	xml_node<>* webSocket;
+	xml_node<>* ctiIP;
+	xml_node<>* ctiPort;
+	xml_node<>* vccID;
+	xml_node<>* agentNum;
+	xml_node<>* agentID;
 
-	pDoc = xmlReadFile(confFile.c_str(), "UTF-8", XML_PARSE_REVOVER);
-	if(pDoc == NULL)
+	try
 	{
-		simu_log->ERROR("打开配置文件 %s 出错",confFile.c_str());
+		root = doc.first_node();
+		logFile = root->first_node("logFile");
+		webSocket = root->first_node("webSocket");
+		ctiIP = root->first_node("ctiIP");
+		ctiPort = root->first_node("ctiPort");
+		vccID = root->first_node("vccID");
+		agentNum = root->first_node("agentNum");
+		agentID = root->first_node("agentID");
+	}
+	catch(exception e)
+	{
+		simu_log->ERROR("配置文件节点不全");
 		return -1;
 	}
-	pRoot = xmlDocGetRootElement(pDoc);
-	if(pRoot == NULL)
+	if(root && logFile && webSocket && ctiIP && ctiPort && vccID && agentNum && agentID)
 	{
-		simu_log->ERROR("%s 是空文档（没有root节点）", confFile.c_str());
-		return -1;
+		simu_log->ERROR("配置文件节点不全");
+		return -1;	
 	}
-	if(xmlStrcmp(pRoot->name, BAD_CAST "config")!=0)
-	{
-		simu_log->ERROR("配置文件内容错误");
-		return -1;
-	}
-	
-	xmlXPathContextPtr context;
-	xmlXPathObjectPtr result;
-	context = xmlXPathNewContext(pDoc);
-	
-	if(context == NULL)
-	{
-		simu_log->ERROR("配置文件为空");
-		return -1;
-	}
-	result = xmlXPathEvalExpression("/config/logFile",context);
-	if(result == NULL)
-	{
-		simu_log->ERROR("logFile 错误");
-		return -1;
-	}
-	else
-	{
-		conf.logFile = result->nodesetval;
-	}
-	
-	result = xmlXPathEvalExpression("/config/webSocket",context);
-	if(result == NULL)
-	{
-		simu_log->ERROR("webSocket 错误");
-		return -1;
-	}
-	else
-	{
-		conf.webSocket = result->nodesetval;
-	}
-
-	result = xmlXPathEvalExpression("/config/ctiIP",context);
-	if(result == NULL)
-	{
-		simu_log->ERROR("ctiIP 错误");
-		return -1;
-	}
-	else
-	{
-		conf.ctiIP = result->nodesetval;
-	}
-
-	result = xmlXPathEvalExpression("/config/ctiPort",context);
-	if(result == NULL)
-	{
-		simu_log->ERROR("ctiPort 错误");
-		return -1;
-	}
-	else
-	{
-		conf.ctiPort = result->nodesetval;
-	}
-
-	result = xmlXPathEvalExpression("/config/vccID",context);
-	if(result == NULL)
-	{
-		simu_log->ERROR("vccID 错误");
-		return -1;
-	}
-	else
-	{
-		conf.vccID = result->nodesetval;
-	}
-
-	result = xmlXPathEvalExpression("/config/agentNum",context);
-	if(result == NULL)
-	{
-		simu_log->ERROR("agentNum 错误");
-		return -1;
-	}
-	else
-	{
-		conf.agentNum = result->nodesetval;
-	}
-
-	result = xmlXPathEvalExpression("/config/agentID",context);
-	if(result == NULL)
-	{
-		simu_log->ERROR("agentID 错误");
-		return -1;
-	}
-	else
-	{
-		conf.agentID = result->nodesetval;
-	}
-
+	conf.logFile = string(logFile->value());
+	conf.webSocket = string(webSocket->value());
+	conf.ctiIP = string(ctiIP->value());
+	conf.ctiPort = atoi(ctiPort->value());
+	conf.vccID = string(vccID->value());
+	conf.agentNum = atoi(agentNum->value());
+	conf.agentID = string(agentID->value());
 	simu_log->LOG("配置文件读取成功");
 	return 0;
 }
 
-int all_initial()
+int all_initial(int sockFd)
 {
-	
+	map <string, CAgent>::iterator iter;
+	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	{
+		if((iter->second).initial(sockFd) < 0)
+		{
+			simu_log->ERROR("ID为 %s 的座席initial失败",iter->first);
+			return -1;
+		}
+	}
+	return 0;	
 }
+
+int all_signIn(int sockFd)
+{
+	map <string, CAgent>::iterator iter;
+	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	{
+		if((iter->second).signIn(sockFd) < 0)
+		{
+			simu_log->ERROR("ID为 %s 的座席signIn失败",iter->first);
+			return -1;
+		}
+	}
+	return 0;
+
+}
+
+int all_setIdle(int sockFd)
+{
+	map <string, CAgent>::iterator iter;
+	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	{
+		if((iter->second).setIdle(sockFd) < 0)
+		{
+			simu_log->ERROR("ID为 %s 的座席setIdle失败",iter->first);
+			return -1;
+		}
+	}
+	return 0;
+
+}
+
+int all_setBusy(int sockFd)
+{
+	map <string, CAgent>::iterator iter;
+	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	{
+		if((iter->second).setBusy(sockFd) < 0)
+		{
+			simu_log->ERROR("ID为 %s 的座席setBusy失败",iter->first);
+			return -1;
+		}
+	}
+	return 0;
+
+}
+
+int all_signOut(int sockFd)
+{
+	map <string, CAgent>::iterator iter;
+	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	{
+		if((iter->second).signOut(sockFd) < 0)
+		{
+			simu_log->ERROR("ID为 %s 的座席signOut失败",iter->first);
+			return -1;
+		}
+	}
+	return 0;
+
+}
+
+int all_report(int sockFd)
+{
+	string report_message = string(conf.agentNum);
+	map<string, CAgent>::iterator iter;
+	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	{
+		message = message + " " + string(iter->sockState) + " " + string(iter->curState) + " " + string(iter->successCall) + " " + string(iter->totalCall);
+	}
+	iter = center.webSocket.find(sockFd);
+	if(iter == center.webSocket.end())
+	{
+		simu_log->ERROR("服务器套接字 %d 没有找到",sockFd);
+		return -1;
+	}
+	(iter->second).push(message);
+	simu_log->LOG("向服务器套接字 %d 发送report，内容为%s",sockFd,message.c_str());
+	return 0;
+}
+
+
+
+
 
 int handle_web_message(int sockFd,string message)
 {
+	simu_log->LOG("收到服务器套接字 %d 的消息，内容为%s",sockFd,message.c_str());
 	if(message == "ALL_INITIAL")
 	{
-		return all_initial();
+		return all_initial(sockFd);
 	}
 	else if(message == "ALL_SIGNIN")
 	{
-		return all_signIn();
+		return all_signIn(sockFd);
 	}
 	else if(message == "ALL_SETIDLE")
 	{
-		return all_setIdle();
+		return all_setIdle(sockFd);
 	}
 	else if(message == "ALL_SETBUSY")
 	{
-		return all_setBusy();
+		return all_setBusy(sockFd);
 	}
 	else if(message == "ALL_SIGNOUT")
 	{
-		return all_signOut();
+		return all_signOut(sockFd);
 	}
 	else if(message == "ALL_REPORT")
 	{
-		return all_report();
+		return all_report(sockFd);
 	}
 	else{
 		simu_log -> ERROR("不认识的命令: %s",message.c_str());
@@ -195,7 +238,7 @@ int send_message(int sockFd);
 {
 	map<int,queue<string> >::iterator it;
 	it = center.webSocket.find(sockFd);
-	if(it != center.webSocket.end)			//此套接字是webSocket
+	if(it != center.webSocket.end())			//此套接字是webSocket
 	{
 		while((it->second).empty()!=false)
 		{

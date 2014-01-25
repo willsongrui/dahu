@@ -15,7 +15,7 @@ using namespace std;
 */ 
 enum AgentState
 {
-	LogOut,Initial,SignIn,Idle,Ringing,Calling,
+	LogOut,Initial_ING,Initial,SignIn_ING,SignIn,Idle,Idle_ING,Busy,Busy_ING,Ringing,Calling,
 }
 
 
@@ -57,12 +57,13 @@ class CConf
 {
 public:
 	string webSocket;			//IPC名
-	string ctiIp;		
+	string ctiIP;		
 	int ctiPort;
 	int agentNum;
-	int agentID;
+	string agentID;
 	string logFile;
 	string vccID;
+	string deviceID;
 	CConf();
 	int validate();
 };
@@ -70,14 +71,16 @@ public:
 class CAgent
 {
 public:
-	int logIn();
-	int logOut();
+	int initial();
+	int signOut();
 	int signIn();
 	int setIdle();
-	int logOut();
+	int setBusy();
+	CLOG log;
 	int log();
     int clearLog();
 	string agentID; 
+	string deviceID;
 	CMessage message;		 //CTI request消息
 	int sock;		    	 //socket句柄
 	int sockState;           //socket 状态

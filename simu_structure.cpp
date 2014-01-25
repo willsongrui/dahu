@@ -9,6 +9,68 @@ CConf::CConf()
 	agentId = 0;
 	logFile = 0;
 }
+
+int CAgent::handle_message(string msg)
+{
+	log->LOG("收到消息 %s",msg.c_str());
+	size_t pos = msg.find("<acpMessage");
+	if(pos == string::npos)
+	{
+		log->ERROR("座席收到的消息格式错误(没有<acp),具体消息为 %s",msg.c_str());
+		return -1;
+	}
+	msg = msg.substr(msg.find("<acpMessage"));
+
+	xml_document<> doc;
+	try
+	{
+		doc.parse<0>(msg.c_str());
+		xml_node<>* root = doc.first_node();
+		xml_node<>* body = root->first_node("body");
+		xml_attribute<>* type = body->first_attribute("type");
+		xml_attribute<>* name = body->first_attribute("name");
+		xml_node<>* parameter = body->first_node("parameter");
+		xml_attribute<>* code = parameter->first_attribute("code");
+		xml_attribute<>* desc = parameter->first_attribute("desc");
+	}
+	catch (exception e)
+	{
+		
+		log->ERROR("消息解析错误");
+		return -1;
+	}
+	if(doc && root && body && type && name && parameter && code && desc)
+	{
+
+		log->ERROR("消息解析错误");
+		return -1;
+	}
+
+	if(strcmp("response",type->value()) == 0)
+	{
+		if(strcmp("Initial", name->value() == 0))
+		{
+			
+			xml_attribute<>* ip = parameter->first_attribute("ip");
+			xml_attribute<>* port = parameter->first_attribute("port");
+			curState = Initial;
+			return signIn(string(ip->value()),atoi(port->value()));
+		}
+		else if(strcmp("SignIn", name->value()) == 0)
+	}
+
+
+
+}
+
+
+
+
+
+
+
+
+
 CAgent::CAgent()
 {
 	sock = -1;
@@ -25,25 +87,33 @@ CAgent::CAgent()
 		msgRecieved.pop();
 	}
 }
-int CAgent::logIn()
+int CAgent::initial()
 {
 	if(curState != LogOut)
 	{
-		log("要logIn的座席不是登出状态");
+		log("ERROR, 要inital的座席不是登出状态");
 		return -1;
 	}
+	curState = Initial_ING;
 	msgToSend.push_back(message.initialRequestMsg);
 	return 0;
 }
+
 int CAgent::signIn()
 {
-	if(curState != LogIn)
+	if(curState != Initial)
 	{
-		log("要signIn的座席不是在logIn状态");
+		log("ERROR, 要signIn的座席不是在initial状态");
 		return -1;
 	}
+	curState = Initial_ING;
 	msgToSend.push_back(message.signInRequestMsg);
 	return 0;
+}
+
+int CAgent::setIdle()
+{
+	if(curState)
 }
 
 CLOG::CLOG(string logFile)
