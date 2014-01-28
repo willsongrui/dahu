@@ -6,13 +6,27 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+
 using namespace std;
 extern CCenter center;
-extern map<int,string> socket_agentID_Map;
+extern map<int,string> socket_agentID_map;
+extern map<string,CAgent> agentID_agent_map;
 extern int epollfd;
 extern LOG* simu_log;
 extern CConf conf;
 
+
+int create_agents()
+{
+	for(int i=0; i < conf.agentNum; i++)
+	{
+		CAgent* agent = new CAgent();
+		agent->initial_ip = conf.ctiIP;
+		agent->port = ctiPort;
+		agent->agentID = 
+
+	}
+}
 
 int load_config(string confFile)
 {
@@ -39,7 +53,7 @@ int load_config(string confFile)
 		return -1;
 	}
 	xml_node<>* root;
-	xml_node<>* logFile;
+	
 	xml_node<>* webSocket;
 	xml_node<>* ctiIP;
 	xml_node<>* ctiPort;
@@ -47,28 +61,27 @@ int load_config(string confFile)
 	xml_node<>* agentNum;
 	xml_node<>* agentID;
 
-	try
+	root = doc.first_node();
+	if(!root)
 	{
-		root = doc.first_node();
-		logFile = root->first_node("logFile");
-		webSocket = root->first_node("webSocket");
-		ctiIP = root->first_node("ctiIP");
-		ctiPort = root->first_node("ctiPort");
-		vccID = root->first_node("vccID");
-		agentNum = root->first_node("agentNum");
-		agentID = root->first_node("agentID");
-	}
-	catch(exception e)
-	{
-		simu_log->ERROR("配置文件节点不全");
+		simu_log->ERROR("配置文件没有根节点");
 		return -1;
 	}
-	if(root && logFile && webSocket && ctiIP && ctiPort && vccID && agentNum && agentID)
+
+	
+	webSocket = root->first_node("webSocket");
+	ctiIP = root->first_node("ctiIP");
+	ctiPort = root->first_node("ctiPort");
+	vccID = root->first_node("vccID");
+	agentNum = root->first_node("agentNum");
+	agentID = root->first_node("agentID");
+		
+	if(!(root && webSocket && ctiIP && ctiPort && vccID && agentNum && agentID))
 	{
 		simu_log->ERROR("配置文件节点不全");
 		return -1;	
 	}
-	conf.logFile = string(logFile->value());
+	
 	conf.webSocket = string(webSocket->value());
 	conf.ctiIP = string(ctiIP->value());
 	conf.ctiPort = atoi(ctiPort->value());
@@ -79,12 +92,13 @@ int load_config(string confFile)
 	return 0;
 }
 
-int all_initial(int sockFd)
+int all_initial()
 {
+
 	map <string, CAgent>::iterator iter;
-	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).initial(sockFd) < 0)
+		if((iter->second).initial() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席initial失败",iter->first);
 			return -1;
@@ -93,12 +107,12 @@ int all_initial(int sockFd)
 	return 0;	
 }
 
-int all_signIn(int sockFd)
+int all_signIn()
 {
 	map <string, CAgent>::iterator iter;
-	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).signIn(sockFd) < 0)
+		if((iter->second).signIn() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席signIn失败",iter->first);
 			return -1;
@@ -108,12 +122,12 @@ int all_signIn(int sockFd)
 
 }
 
-int all_setIdle(int sockFd)
+int all_setIdle()
 {
 	map <string, CAgent>::iterator iter;
-	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).setIdle(sockFd) < 0)
+		if((iter->second).setIdle() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席setIdle失败",iter->first);
 			return -1;
@@ -123,12 +137,12 @@ int all_setIdle(int sockFd)
 
 }
 
-int all_setBusy(int sockFd)
+int all_setBusy()
 {
 	map <string, CAgent>::iterator iter;
-	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).setBusy(sockFd) < 0)
+		if((iter->second).setBusy() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席setBusy失败",iter->first);
 			return -1;
@@ -138,12 +152,12 @@ int all_setBusy(int sockFd)
 
 }
 
-int all_signOut(int sockFd)
+int all_signOut()
 {
 	map <string, CAgent>::iterator iter;
-	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).signOut(sockFd) < 0)
+		if((iter->second).signOut() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席signOut失败",iter->first);
 			return -1;
@@ -157,7 +171,7 @@ int all_report(int sockFd)
 {
 	string report_message = string(conf.agentNum);
 	map<string, CAgent>::iterator iter;
-	for(iter = agentID_CAgent_Map.begin(); iter != agentID_CAgent_Map.end(); iter++)
+	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
 		message = message + " " + string(iter->sockState) + " " + string(iter->curState) + " " + string(iter->successCall) + " " + string(iter->totalCall);
 	}
@@ -181,23 +195,23 @@ int handle_web_message(int sockFd,string message)
 	simu_log->LOG("收到服务器套接字 %d 的消息，内容为%s",sockFd,message.c_str());
 	if(message == "ALL_INITIAL")
 	{
-		return all_initial(sockFd);
+		return all_initial();
 	}
 	else if(message == "ALL_SIGNIN")
 	{
-		return all_signIn(sockFd);
+		return all_signIn();
 	}
 	else if(message == "ALL_SETIDLE")
 	{
-		return all_setIdle(sockFd);
+		return all_setIdle();
 	}
 	else if(message == "ALL_SETBUSY")
 	{
-		return all_setBusy(sockFd);
+		return all_setBusy();
 	}
 	else if(message == "ALL_SIGNOUT")
 	{
-		return all_signOut(sockFd);
+		return all_signOut();
 	}
 	else if(message == "ALL_REPORT")
 	{
@@ -207,12 +221,13 @@ int handle_web_message(int sockFd,string message)
 		simu_log -> ERROR("不认识的命令: %s",message.c_str());
 		return -1;
 	}
+	return 0;
 }
 
 
 int handle_message(int sockFd,string message)
 {
-	if(center.webSocket.find(sockFd)!=center.webSocket.end)		//webSocket是接收web命令的套接字
+	if(center.webSocket.find(sockFd)!=center.webSocket.end())		//webSocket是接收web命令的套接字
 	{
 		return handle_web_message(sockFd,message);
 	}

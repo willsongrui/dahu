@@ -12,7 +12,8 @@
 #define MAX_EVENTS 1000
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
-map<int,string> socket_agentID_Map;  //socket和agent的映射map
+map<int,string> socket_agentID_map;  //socket和agent的映射map
+map<string,CAgent>agentID_agent_map;
 queue<int> socket_Not_In_Epoll;		 //还未加入到EPOLL中的socket
 CConf conf;
 LOG* simu_log;						
@@ -21,20 +22,23 @@ int listenWeb;						 //ipc的socket句柄
 
 int main()
 {
+	//系统的日志文件
+	simu_log = new LOG("simulation.log");
 	if(load_config("simulation.conf")<0)
 	{
 		printf("打开配置文件错误\n");
-		return 0;
+		return -1;
 	}
-
-	simu_log = new LOG(conf.logFile);	//系统的日志文件
-	
-	if(simu_log.error<0)
+	if(simu_log.error < 0)
 	{
 		printf("打开log文件错误\n");
-		return 0;
+		return -1;
 	}
-	
+	if(create_agents() < 0)
+	{
+		simu_log->ERROR("初始化座席失败");
+		return -1;
+	}
 	epollfd = epoll_create(MAX_EVENTS);
 	if(epollfd < 0)
 	{
