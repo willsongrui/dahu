@@ -15,7 +15,7 @@ using namespace std;
 */ 
 enum AgentState
 {
-	LogOut,Initial_ING,Initial,SignIn_ING,SignIn,Idle,Idle_ING,Busy,Busy_ING,Ringing,Calling,
+	SignOut,Initial,After_Initial,SignIn,SignIn,Idle,Idle_ING,Busy,Busy_ING,Ringing,Calling,AfterCall
 }
 
 
@@ -92,8 +92,8 @@ public:
 	
 	int handle_message();
 	int send_message();
-	string timeStamp; 		 //在座席登录后系统分配的时间戳
-
+	string m_timeStamp; 		 //在座席登录后系统分配的时间戳
+	string m_sessionID;
 	CAgent();
 	~CAgent();
 

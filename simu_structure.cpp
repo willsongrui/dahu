@@ -22,26 +22,18 @@ int CAgent::handle_message(string msg)
 	msg = msg.substr(msg.find("<acpMessage"));
 
 	xml_document<> doc;
-	try
-	{
-		doc.parse<0>(msg.c_str());
-		xml_node<>* root = doc.first_node();
-		xml_node<>* body = root->first_node("body");
-		xml_attribute<>* type = body->first_attribute("type");
-		xml_attribute<>* name = body->first_attribute("name");
-		xml_node<>* parameter = body->first_node("parameter");
-		xml_attribute<>* code = parameter->first_attribute("code");
-		xml_attribute<>* desc = parameter->first_attribute("desc");
-	}
-	catch (exception e)
-	{
+	
+	doc.parse<0>(msg.c_str());
+	xml_node<>* root = doc.first_node();
+	xml_node<>* header = root->first_node("header");
+	xml_node<>* body = root->first_node("body");
+	xml_attribute<>* type = body->first_attribute("type");
+	xml_attribute<>* name = body->first_attribute("name");
+	xml_attribute<>* code = body->first_node("cause")->first_attribute("code");
+	xml_attribute<>* desc = body->first_node("cause")->first_attribute("desc");
 		
-		log->ERROR("消息解析错误");
-		return -1;
-	}
-	if(doc && root && body && type && name && parameter && code && desc)
+	if(!(doc && root && body && type && name && parameter && code && desc))
 	{
-
 		log->ERROR("消息解析错误");
 		return -1;
 	}
@@ -49,18 +41,273 @@ int CAgent::handle_message(string msg)
 	if(strcmp("response",type->value()) == 0)
 	{
 		if(strcmp("Initial", name->value() == 0))
-		{
-			
+		{			
 			xml_attribute<>* ip = parameter->first_attribute("ip");
 			xml_attribute<>* port = parameter->first_attribute("port");
 			curState = Initial;
 			return signIn(string(ip->value()),atoi(port->value()));
 		}
 		else if(strcmp("SignIn", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			if(!(sessionID && timeStamp && cause && code && desc))
+			{
+				log->ERROR("收到的SignIn Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("signIn失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = SignIn;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+			return setIdle();
+		}
+		else if(strcmp("SignOut", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			if(!(sessionID && timeStamp code && desc))
+			{
+				log->ERROR("收到的SignOut Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("signOut失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = SignOut;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("SetBusy", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			xml_node<>* cause = body->first_node("cause");
+			xml_attribute<>* code = cause->first_attribute("code");
+			xml_attribute<>* desc = cause->first_attribute("desc");
+
+			if(!(sessionID && timeStamp && cause && code && desc))
+			{
+				log->ERROR("收到的setBusy Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("setBusy失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = Busy;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("SetIdle", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			
+			if(!(sessionID && timeStamp && code && desc))
+			{
+				log->ERROR("收到的setIdle Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("setIdle失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = Idle;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("AgentReconnect", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			
+			if(!(sessionID && timeStamp && code && desc))
+			{
+				log->ERROR("收到的setIdle Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("AgentReconnect失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = SignIn;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("ForceIdle", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			
+			if(!(sessionID && timeStamp && code && desc))
+			{
+				log->ERROR("收到的forceIdle Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("forceIdle失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = Idle;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("ForceBusy", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			
+			if(!(sessionID && timeStamp && code && desc))
+			{
+				log->ERROR("收到的forceBusy Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("forceBusy 失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = Busy;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("ForceOut", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			
+			if(!(sessionID && timeStamp && code && desc))
+			{
+				log->ERROR("收到的forceOut Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("forceOut失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = SignOut;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("ReleaseCall", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			
+			if(!(sessionID && timeStamp && code && desc))
+			{
+				log->ERROR("收到的releaseCall Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("releaseCall失败，失败原因%s",desc->value());
+				return -1;
+			}
+			//curState = SignOut;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+			return setIdle();
+		}
+
+		else if(strcmp("ForceOut", name->value()) == 0)
+		{
+			xml_node<>* sessionID = root->first_node("header")->first_node("sessionID");
+			xml_node<>* timeStamp = header->first_node("timeStamp");
+			
+			if(!(sessionID && timeStamp && code && desc))
+			{
+				log->ERROR("收到的forceOut Response错误");
+				return -1;
+			}
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("forceOut失败，失败原因%s",desc->value());
+				return -1;
+			}
+			curState = SignOut;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+
 	}
+	else if(strcmp("event", type->value()))
+	{
+		if(strcmp("onForceIdle",name->value()))
+		{
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("onForceIdle失败，失败原因%s",desc->value()));
+				return -1;
+			}
+			curState = Idle;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+
+		else if(strcmp("OnAnserSuccess",name->value()))
+		{
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("onForceIdle失败，失败原因%s",desc->value()));
+				return -1;
+			}
+			curState = Calling;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+			totalCall++;
+		}
+
+		else if(strcmp("OnAnserFailue",name->value()))
+		{
+			log->ERROR("通话失败,收到answer_failue消息");
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+		}
+
+		else if(strcmp("OnReleaseSuccess",name->value()))
+		{
+			if(strcmp(code->value(),"0") != 0)
+			{
+				log->ERROR("onReleaseSuccess失败，失败原因%s",desc->value()));
+				return -1;
+			}
+			curState = AfterCall;
+			m_timeStamp = string(timeStamp->value());
+			m_sessionID = string(sessionID->value());
+			totalCall++;
+		}
 
 
 
+
+
+		if(strcmp("onAnswerSuccess",name->value()))
+		{
+
+		}
+	}
 }
 
 
@@ -77,7 +324,7 @@ CAgent::CAgent()
 	sockState = 0;
 	totalCall = 0;
 	successCall = 0;
-	curState = preState = LogOut;
+	curState = preState = SignOut;
 	while(msgToSend.empty() == false)
 	{
 		msgToSend.pop();
@@ -89,9 +336,9 @@ CAgent::CAgent()
 }
 int CAgent::initial()
 {
-	if(curState != LogOut)
+	if(curState != SignOut)
 	{
-		log("ERROR, 要inital的座席不是登出状态");
+		log->ERROR("要inital的座席不是登出状态");
 		return -1;
 	}
 	curState = Initial_ING;
@@ -103,7 +350,7 @@ int CAgent::signIn()
 {
 	if(curState != Initial)
 	{
-		log("ERROR, 要signIn的座席不是在initial状态");
+		log->ERROR("要signIn的座席不是在initial状态");
 		return -1;
 	}
 	curState = Initial_ING;
