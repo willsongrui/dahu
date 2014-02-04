@@ -6,7 +6,7 @@ CConf::CConf()
 	ctiIp = "";
 	ctiPort = 0;
 	agentNum = 0;
-	agentId = 0;
+	agentID = 0;
 	logFile = 0;
 }
 
@@ -305,6 +305,7 @@ int CAgent::handle_message(string msg)
 				}
 				else
 				{
+					m_statusAfterCall = atoi(idleStatus->value());
 					if(strcmp("0",idleStatus->value()) == 0)
 					{
 						log->LOG("电话接通后所处的状态: 后续处理");
@@ -371,9 +372,9 @@ CAgent::CAgent()
 	totalCall = 0;
 	successCall = 0;
 	curState = preState = SignOut;
-	while(msgToSend.empty() == false)
+	while(m_msgToSend.empty() == false)
 	{
-		msgToSend.pop();
+		m_msgToSend.pop();
 	}
 	while(msgRecieved.empty() == false)
 	{
@@ -385,7 +386,7 @@ int CAgent::initial()
 {
 
 	setStatus(Try2Initial);
-	msgToSend.push_back(message.initialRequestMsg);
+	m_msgToSend.push_back(message.initialRequestMsg);
 	return 0;
 }
 
@@ -395,7 +396,7 @@ int CAgent::signIn(string IP,int port)
 	c
 	setStatus(Try2SignIn);
 	
-	msgToSend.push_back(message.signInRequestMsg);
+	m_msgToSend.push_back(message.signInRequestMsg);
 	return 0;
 }
 
@@ -403,57 +404,6 @@ int CAgent::setIdle()
 {
 	if(curState)
 }
-
-CLOG::CLOG(string logFile)
-{
-	fs = open(logFile.c_str(),O_WRONLY);
-	if(fs < 0)
-	{
-		printf("打开日志文件%s失败,错误原因: %s",logFile.c_str(),strerror(errno));
-		logFile = -1;
-	}
-	else
-	{
-		logFile = fs;
-	}
-}
-void CLOG::ERROR(const char* fmt,...)
-{
-	va_list arg;
-	va_start(arg,fmt);
-	write_to_log("ERROR",fmt,arg);
-	va_end();
-	
-}
-void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
-{
-	if(logFile < 0)
-		return;
-	
-	char temp[500];
-	
-	vsnprintf(temp, sizeof(temp), fmt, arg);
-	
-	temp[strlen(temp)-1] == '\0';
-	char buffer[500];
-	
-	sprintf(buffer,"%s [%s] %s\n",type,getTimetemp,temp);
-	if(write(logFile, temp, sizeof(buffer)) <0 )
-	{
-		printf("写日志文件失败,失败原因 : %s",strerror(errno)):
-	}
-
-
-}
-void CLOG::LOG(const char* fmt, ...)
-{
-	va_list arg;
-	va_start(arg,fmt);
-	write_to_log("LOG",fmt,arg);
-	va_end();
-
-}
-
 
 
 

@@ -23,17 +23,21 @@ int listenWeb;						 //ipc的socket句柄
 int main()
 {
 	//系统的日志文件
-	simu_log = new LOG("simulation.log");
+	try
+	{
+		simu_log = new CLOG("simulation.log");
+	}
+	catch(int e)
+	{
+		printf("打开文件日志失败\n");
+		return -1;
+	}
 	if(load_config("simulation.conf")<0)
 	{
 		printf("打开配置文件错误\n");
 		return -1;
 	}
-	if(simu_log.error < 0)
-	{
-		printf("打开log文件错误\n");
-		return -1;
-	}
+	
 	if(create_agents() < 0)
 	{
 		simu_log->ERROR("初始化座席失败");

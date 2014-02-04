@@ -2,6 +2,7 @@
 #include <map>
 #include <queue>
 #include <sys/time.h>
+#include <errno.h>
 using namespace std;
 
 
@@ -18,29 +19,6 @@ enum AgentState
 	SignOut,Try2Initial,Initial,Try2SignIn,SignIn,Try2Idle,Idle,Try2Busy,Busy,Ringing,Calling,AfterCall
 }
 
-
-class CLOG
-{
-public:
-	CLOG(string file);
-	void ERROR();
-	void LOG();
-	int logFs;
-	struct timeval tv;
-	struct timezone tz;
-private:
-	char m_asctime[32];
-	char* getTime()
-	{
-		struct tm *ptr;
-		time_t t;
-		time(&t);
-		ptr = localtime(&t);
-		strftime(m_asctime, 100, "%H:%M:%S",ptr);
-		return m_asctime;
-
-	}
-};
 
 class CMessage
 {
