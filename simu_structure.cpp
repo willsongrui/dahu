@@ -365,7 +365,6 @@ int CAgent::handle_message(string msg)
 CAgent::CAgent()
 {
 	m_timeStamp = m_sessionID = "";
-	logFd = -1;
 	inteval = statusAfterCall = -1;
 	sock = -1;
 	sockState = 0;
@@ -404,6 +403,8 @@ int CAgent::setIdle()
 {
 	if(curState)
 }
+
+
 
 
 
