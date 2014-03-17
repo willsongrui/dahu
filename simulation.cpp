@@ -23,8 +23,10 @@ int create_agents()
 		CAgent* agent = new CAgent();
 		agent->initial_ip = conf.ctiIP;
 		agent->port = ctiPort;
-		agent->agentID = 
-
+		agent->agentID = conf.agentID;
+		agent->deviceID = conf.deviceID;
+		agentID_agent_map.insert(make_pair(agent->agentID,agent));
+		agent->initial();
 	}
 }
 
@@ -53,7 +55,6 @@ int load_config(string confFile)
 		return -1;
 	}
 	xml_node<>* root;
-	
 	xml_node<>* webSocket;
 	xml_node<>* ctiIP;
 	xml_node<>* ctiPort;
@@ -69,7 +70,8 @@ int load_config(string confFile)
 	}
 
 	
-	webSocket = root->first_node("webSocket");
+	webIP= root->first_node("webIP");
+	webPort = root->first_node("webPort");
 	ctiIP = root->first_node("ctiIP");
 	ctiPort = root->first_node("ctiPort");
 	vccID = root->first_node("vccID");
@@ -82,13 +84,24 @@ int load_config(string confFile)
 		return -1;	
 	}
 	
-	conf.webSocket = string(webSocket->value());
+	conf.webIP = string(webIP->value());
+	conf.webPort = atoi(webPort->value());
 	conf.ctiIP = string(ctiIP->value());
 	conf.ctiPort = atoi(ctiPort->value());
 	conf.vccID = string(vccID->value());
 	conf.agentNum = atoi(agentNum->value());
 	conf.agentID = string(agentID->value());
 	simu_log->LOG("配置文件读取成功");
+	
+	delete root;
+	delete webIP;
+	delete webPort;
+	delete ctiIP;
+	delete ctiPort;
+	delete vccID;
+	delete agentNum;
+	delete agentID;
+
 	return 0;
 }
 
@@ -224,28 +237,63 @@ int handle_web_message(int sockFd,string message)
 	return 0;
 }
 
-
-int handle_message(int sockFd,string message)
+void msgSplit(vector<string>& vec, const string& message)
 {
+	string endFlag = "</acpMessage>";
+	int len = endFlag.length();
+	int pos;
+	int pre;
+	while(pos!=message.end())
+	{
+		vec.push_back(message.substr(pre,pos+len-pre));
+		pre = pos + len;
+		pos = message.find(pre);
+	}
+
+}
+int handle_message(int sockFd,const string& message)
+{
+
+	vector<string> msg;
+	msgSplit(msg, message);
+
+	int n;
+	int ret = 0;
 	if(center.webSocket.find(sockFd)!=center.webSocket.end())		//webSocket是接收web命令的套接字
 	{
-		return handle_web_message(sockFd,message);
+		for(int i=0; i<msg.size(); i++)
+		{	
+			n = handle_web_message(msg[i]);
+			if(n < 0)
+			{
+				simu_log -> ERROR("处理web_message时失败:%s",msg[i].c_str());
+				ret = -1;
+			}
+		}
+		
 	}
 	else
 	{
-		CAgent agent = find_agent(sockFd);
+		CAgent* agent = find_agent(sockFd);
 		if(agent->exist == false)
 		{
-			simu_log->LOG("no agent has fd %d when closing",sockFd);
+			simu_log->LOG("no agent has fd %d",sockFd);
 			return -1;
 		}
 		else
 		{
-			return agent->handle_message(message);
+			for(int i=0; i < msg.size(); i++)
+			{
+				n = agent->handle_message(msg[i]);
+				if(n<0)
+				{
+					simu_log -> ERROR("处理web_message时失败:%s",msg[i].c_str());
+					ret = -1;
+				}
+			}
 		}
-		
 	}
-	
+	return ret;
 }
 
 
@@ -267,7 +315,7 @@ int send_message(int sockFd);
 	else
 	{
 		CAgent* agent = find_agent(sockFd);
-		if(agent.exist == false)
+		if(agent->exist == false)
 		{
 			simu_log->ERROR("套接字 %d 既不是座席也不是web",sockFd);
 			return -1;
@@ -338,9 +386,9 @@ int close_sock_in_epoll(int sockFd)
 	return 0;
 }
 
-int create_connection_to_web(string webSocket)
+int create_connection_to_web(int Port)
 {
-	sockFd = socket(AF_UNIX,SOCK_STREAM,0);
+	sockFd = socket(AF_INET,SOCK_STREAM,0);
 	if(sockFd < 0)
 	{
 		simu_log->ERROR("创建web套接字失败,失败原因: %s",strerror(errno));
@@ -357,11 +405,18 @@ int create_connection_to_web(string webSocket)
 		simu_log->ERROR("设置web套接字为非阻塞模式失败,失败原因: %s",strerror(errno));
 		return -1;
 	}
-	if(listen(sockFd,1000) < 0)
+	struct sockaddr_in addr;
+	memset(addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(Port);
+	if(bind(sockFd, (struct sockaddr*)(&addr), sizeof(addr)) < 0)
 	{
-		simu_log->ERROR("监听web套接字失败,错误原因: %s",strerror(errno));
+		simu_log->ERROR("绑定sockect时失败");
 		return -1;
 	}
+	listen(sockFd,1000);
+	
 	return sockFd;
 	
 }

@@ -13,7 +13,7 @@
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
 map<int,string> socket_agentID_map;  //socket和agent的映射map
-map<string,CAgent>agentID_agent_map;
+map<string,CAgent> agentID_agent_map;
 queue<int> socket_Not_In_Epoll;		 //还未加入到EPOLL中的socket
 CConf conf;
 LOG* simu_log;						
@@ -43,6 +43,7 @@ int main()
 		simu_log->ERROR("初始化座席失败");
 		return -1;
 	}
+	
 	epollfd = epoll_create(MAX_EVENTS);
 	if(epollfd < 0)
 	{
@@ -65,7 +66,7 @@ int main()
 	{
 		
 		struct epoll_event ev,events[MAX_EVENTS];
-		while(socket_Not_In_Epoll.size()!=0)
+		while(socket_Not_In_Epoll.empty()!=0)
 		{
 			memset(ev,0,sizeof(ev));
 			int sock = socket_Not_In_Epoll.front();
@@ -97,12 +98,12 @@ int main()
    				{
 
    					simu_log->ERROR("IPC Sock Connection 错误, 错误原因 %s ",strerror(errno));
-      				return 0;     
+      				return -1;     
    				}
    				if(setnonblocking(ret) < 0)
    				{
    					simu_log->ERROR("设置成nonblocking模式错误");
-   					return 0;
+   					return -1;
    				}
    				ev.events = EPOLLIN|EPOLLOUT|EPOLLRDHUP;
    				ev.data.fd = ret;
@@ -111,10 +112,10 @@ int main()
    				{
    				
    					simu_log->ERROR("套接字(listenWeb) %d 加入EPOLL错误, 错误原因 %s ",ret,strerror(errno));
-   					return 0;
+   					return -1;
    				}
    				queue <string> tempQ;
-   				center.webSocket.append(make_pair(ret,tempQ));
+   				center.webSocket.insert(make_pair(ret,tempQ));
 			}
 			
 			else
@@ -127,20 +128,22 @@ int main()
 				}
 				else if(ev.events & EPOLLIN)
 				{
+					//做边界值处理
+					string msg;
 					char buf[2000];
-					int ret = recv(ev.data.fd,buf,sizeof(buf),0);
-					if(ret==0)
+					int ret;
+					while((ret = recv(ev.data.fd,buf,sizeof(buf),0))>0)
 					{
-						simu_log->LOG("套接字 %d 对方关闭连接",ev.data.fd);
-						close_sock_in_epoll(ev.data.fd);
+						msg = msg + string(buf);
 					}
-					else if(ret < 0)
+					
+					if(ret < 0)
 					{
 						simu_log->ERROR("套接字 %d 接收错误，错误原因 %s",ev.data.fd,strerror(errno));
 					}
 					else
 					{
-						handle_massage(ev.data.fd,string(buf));		//根据socket内容处理message内容
+						handle_message(ev.data.fd, msg);		//根据socket内容处理message内容
 					}
 				}
 				else if(ev.events & EPOLLOUT)
