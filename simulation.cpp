@@ -1,36 +1,112 @@
-#include <simulation.h>
-#include <simu_structure.h>
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include "simulation.h"
+#include "simu_def.h"
 
-
-using namespace std;
 extern CCenter center;
 extern map<int,string> socket_agentID_map;
-extern map<string,CAgent> agentID_agent_map;
+extern map<string,CAgent*> agentID_agent_map;
 extern int epollfd;
 extern LOG* simu_log;
 extern CConf conf;
+extern queue<int> socket_Not_In_Epoll;
 
 
+int create_connection_to_cti(string ip, int port, CAgent* agent)
+{
+	if((agent==NULL)||(agent->log()==NULL))
+	{
+		simu_log->ERORR("create_connectino_to_cti时传入指针为空");
+		return -1;
+	}
+	int sockFd = socket(AF_INET,SOCK_STREAM,0);
+	if(sockFd < 0)
+	{
+		agent->log()->ERROR("创建cti套接字失败,失败原因: %s",strerror(errno));
+		return -1;
+	}
+	int flags = fcntl(sockFd,F_GETFL);
+	if(flags < 0)
+	{
+		agent->log()->ERROR("得到cti套接字flag失败,失败原因: %s",strerror(errno));
+		return -1;	
+	}
+	if(fcntl(sockFd,F_SETFL,flags|O_NONBLOCK) < 0)
+	{
+		agent->log()->ERROR("设置web套接字为非阻塞模式失败,失败原因: %s",strerror(errno));
+		return -1;
+	}
+	struct sockaddr_in addr;
+	memset(addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(Port);
+
+	int ret = connect(sockFd,(struct sockaddr*)(&addr), sizeof(addr));
+	if((ret<0)&&(errno!=EINPORGRESS))
+	{	
+		agent->log()->ERROR("试图connect时失败，错误原因：%s",strerror(errno));
+		return -1;
+	}
+	
+	return sockFd;
+
+}
+int add_to_epoll(int agentfd)
+{
+	socket_Not_In_Epoll.push(agentfd);
+	return 0;
+}
+int add_int_to_string(string& base, int n)
+{
+	if(base.length()<5)
+	 	return -1;
+	string low = base.substr(base.length()-5);
+	int low_value = atoi(low.c_str()) + n;
+	if(low_value > 99999)
+		return -1; 
+	base = base.substr(0, base.length()-5);
+	char tmp[6];
+	sprintf(tmp,"%d",low_value);
+	base = base + string(tmp);
+	
+}	
 int create_agents()
 {
+	if(!conf)
+	{
+		simu_log->ERROR("当试图create_agents时conf实例还没有加载成功");
+		return -1;
+	}
 	for(int i=0; i < conf.agentNum; i++)
 	{
 		CAgent* agent = new CAgent();
-		agent->initial_ip = conf.ctiIP;
-		agent->port = ctiPort;
-		agent->agentID = conf.agentID;
-		agent->deviceID = conf.deviceID;
+		agent->m_initial_ip = conf.ctiIP;
+		agent->m_initial_port = ctiPort;
+		agent->m_agentID = add_int_to_string(conf.agentID, i);
+		agent->m_deviceID = add_int_to_string(conf.deviceID, i);
+			
+		int agentfd = create_connection_to_cti();
+		if(agentfd < 0)
+		{
+			agent->log->ERROR("试图create_connection_to_cti时失败");
+			return -1;
+		}
+		if(add_to_epoll(agentfd) < 0)
+		{
+			agent->log->ERROR("试图加入epoll时失败");
+			return -1;
+		}
+
+		agent->sock = agentfd;
+		
+		socket_agentID_map.insert(make_pair(agentfd, agent->agentID));
 		agentID_agent_map.insert(make_pair(agent->agentID,agent));
+		
 		agent->initial();
 	}
+	return 0;
 }
 
-int load_config(string confFile)
+int load_config(const string& confFile)
 {
 	fs = open(confFile.c_str(),O_RDONLY);
 	if(fs < 0)
@@ -49,7 +125,7 @@ int load_config(string confFile)
 	{
 		doc.parse<0>(config);
 	}
-	catch (exception e)
+	catch (parse_error e)
 	{
 		simu_log->ERROR("配置文件格式错误");
 		return -1;
@@ -61,6 +137,7 @@ int load_config(string confFile)
 	xml_node<>* vccID;
 	xml_node<>* agentNum;
 	xml_node<>* agentID;
+	xml_node<>* webPort;
 
 	root = doc.first_node();
 	if(!root)
@@ -70,7 +147,7 @@ int load_config(string confFile)
 	}
 
 	
-	webIP= root->first_node("webIP");
+	
 	webPort = root->first_node("webPort");
 	ctiIP = root->first_node("ctiIP");
 	ctiPort = root->first_node("ctiPort");
@@ -84,7 +161,7 @@ int load_config(string confFile)
 		return -1;	
 	}
 	
-	conf.webIP = string(webIP->value());
+	
 	conf.webPort = atoi(webPort->value());
 	conf.ctiIP = string(ctiIP->value());
 	conf.ctiPort = atoi(ctiPort->value());
@@ -94,7 +171,6 @@ int load_config(string confFile)
 	simu_log->LOG("配置文件读取成功");
 	
 	delete root;
-	delete webIP;
 	delete webPort;
 	delete ctiIP;
 	delete ctiPort;
@@ -108,10 +184,10 @@ int load_config(string confFile)
 int all_initial()
 {
 
-	map <string, CAgent>::iterator iter;
+	map <string, CAgent*>::iterator iter;
 	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).initial() < 0)
+		if((iter->second)->initial() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席initial失败",iter->first);
 			return -1;
@@ -122,10 +198,10 @@ int all_initial()
 
 int all_signIn()
 {
-	map <string, CAgent>::iterator iter;
+	map <string, CAgent*>::iterator iter;
 	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).signIn() < 0)
+		if((iter->second)->signIn() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席signIn失败",iter->first);
 			return -1;
@@ -137,10 +213,10 @@ int all_signIn()
 
 int all_setIdle()
 {
-	map <string, CAgent>::iterator iter;
+	map <string, CAgent*>::iterator iter;
 	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).setIdle() < 0)
+		if((iter->second)->setIdle() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席setIdle失败",iter->first);
 			return -1;
@@ -152,10 +228,10 @@ int all_setIdle()
 
 int all_setBusy()
 {
-	map <string, CAgent>::iterator iter;
+	map <string, CAgent*>::iterator iter;
 	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).setBusy() < 0)
+		if((iter->second)->setBusy() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席setBusy失败",iter->first);
 			return -1;
@@ -167,10 +243,10 @@ int all_setBusy()
 
 int all_signOut()
 {
-	map <string, CAgent>::iterator iter;
+	map <string, CAgent*>::iterator iter;
 	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
-		if((iter->second).signOut() < 0)
+		if((iter->second)->signOut() < 0)
 		{
 			simu_log->ERROR("ID为 %s 的座席signOut失败",iter->first);
 			return -1;
@@ -183,19 +259,19 @@ int all_signOut()
 int all_report(int sockFd)
 {
 	string report_message = string(conf.agentNum);
-	map<string, CAgent>::iterator iter;
+	map<string, CAgent*>::iterator iter;
 	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
 	{
 		message = message + " " + string(iter->sockState) + " " + string(iter->curState) + " " + string(iter->successCall) + " " + string(iter->totalCall);
 	}
-	iter = center.webSocket.find(sockFd);
-	if(iter == center.webSocket.end())
+	map<int, queue<string> >it = center.webSocket.find(sockFd);
+	if(it == center.webSocket.end())
 	{
-		simu_log->ERROR("服务器套接字 %d 没有找到",sockFd);
+		simu_log->ERROR("监听服务器套接字 %d 没有找到",sockFd);
 		return -1;
 	}
-	(iter->second).push(message);
-	simu_log->LOG("向服务器套接字 %d 发送report，内容为%s",sockFd,message.c_str());
+	(it->second).push(message);
+	simu_log->LOG("向监听服务器套接字 %d 发送report，内容为%s",sockFd,message.c_str());
 	return 0;
 }
 
@@ -203,7 +279,7 @@ int all_report(int sockFd)
 
 
 
-int handle_web_message(int sockFd,string message)
+int handle_web_message(int sockFd,const string& message)
 {
 	simu_log->LOG("收到服务器套接字 %d 的消息，内容为%s",sockFd,message.c_str());
 	if(message == "ALL_INITIAL")
@@ -287,7 +363,7 @@ int handle_message(int sockFd,const string& message)
 				n = agent->handle_message(msg[i]);
 				if(n<0)
 				{
-					simu_log -> ERROR("处理web_message时失败:%s",msg[i].c_str());
+					simu_log -> ERROR("处理agent_message时失败:%s",msg[i].c_str());
 					ret = -1;
 				}
 			}
@@ -301,13 +377,14 @@ int send_message(int sockFd);
 {
 	map<int,queue<string> >::iterator it;
 	it = center.webSocket.find(sockFd);
+
 	if(it != center.webSocket.end())			//此套接字是webSocket
 	{
 		while((it->second).empty()!=false)
 		{
-			if(send(sockFd,(it->second).front) < 0)
+			if(send(sockFd,(it->second).front().c_str(), sizeof((it->second).front().c_str()), 0) < 0)
 			{
-				simu_log->ERROR("套接字 %d 向web发送消息 %s 错误,错误原因是 : %s",sockFd,(it->second).front,strerror(errno));
+				simu_log->ERROR("套接字 %d 向web发送消息 %s 错误,错误原因是 : %s",sockFd,(it->second).front(),strerror(errno));
 			}
 			(it->second).pop();
 		}
@@ -332,12 +409,12 @@ int send_message(int sockFd);
 	return 0;
 }
 
-int non_block_connect(string ip,int port)
+
+int setnonblocking(int fd)
 {
-	sockFd = socket(AF_INET,DATA_STREAM,0);
-	if(sockFd < 0)
+	if(fd <= 0)
 	{
-		simu_log->ERROR("error create socket %s\n",strerror(errno));
+		simu_log->ERROR("待设置为nonblocking的句柄为负");
 		return -1;
 	}
 	int flags = fcntl(sockFd,F_GETFL);
@@ -351,12 +428,35 @@ int non_block_connect(string ip,int port)
 		simu_log->ERROR("error set flag to O_NONBLOCK for %d :%s",sockFd,strerror(errno));
 		return -1;
 	}
-	return 0;
+	return 0; 
 }
 
-
-int close_sock_in_epoll(int sockFd)
+CAgent* find_agent(const string& agentID)
 {
+	if(agentID == NULL)
+		return 0;
+	map<string,CAgent*>::iterator iter;
+	iter = agentID_agent_map.find(agentID); 
+	if(iter !=agentID_agent_map.end())
+		return iter->second;
+	else
+		return -1;
+
+}
+string find_agentID(int sockFd)
+{
+	map<int,string>::iterator iter;
+	iter = socket_agentID_map.find(sockFd);
+	if(iter == socket_agentID_map.end())
+	{
+		return string("NONEXIST");
+	}
+	return iter->second;
+
+}
+int close_sock_and_erase(int sockFd)
+{
+	close(sockFd);
 	if(EPOLL_CTL(epollfd,EPOLL_CTL_DEL,sockFd,NULL) < 0)
 	{
 		
@@ -368,27 +468,37 @@ int close_sock_in_epoll(int sockFd)
 		//sockFd是监听web套接字
 		return 0;
 	}
-	
-	CAgent* agent = find_agent(sockFd);
-	if(agent.exist == false)
+	string agentID = find_agentID(sockFd);
+	if(agentID == "NONEXIST")
 	{
-		simu_log->LOG("no agent has fd %d when closing",sockFd);
+		simu_log->ERROR("当试图在寻找sockFd为%d的agentID时失败",sockFd);
 		return -1;
+	}
+	agentID_agent_map.erase(sockFd);
+	CAgent* agent = find_agent(agentID);
+	if(agent == NULL)
+	{
+		simu_log->ERROR("当试图在寻找agentID为%s的agent时失败",agentID.c_str());
+		return -1;	
+	}
+	if(agent->agentState == AG_NULL)
+	{
+		agent->set_initial_sock(-1);
+		agent->log->LOG("Initial 套接字关闭");
 	}
 	else
 	{
-		agent->LOG("Socket Closed");
-		agent->sockState = 0;
-		agent->preState = agent->curState;
-		agent->curState = LogOut;
-		
+		agent->set_sign_sock(-1);
+		agent->log->LOG("正常登录座席的套接字关闭");
+		agent->set_agentState(AG_NULL);
 	}
+
 	return 0;
 }
 
 int create_connection_to_web(int Port)
 {
-	sockFd = socket(AF_INET,SOCK_STREAM,0);
+	int sockFd = socket(AF_INET,SOCK_STREAM,0);
 	if(sockFd < 0)
 	{
 		simu_log->ERROR("创建web套接字失败,失败原因: %s",strerror(errno));

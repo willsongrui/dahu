@@ -1,3 +1,21 @@
+int CAgent::send_message()
+{
+	if(sock < 0)
+		log->ERROR("座席socket还没准备好");
+	string msgToSend;
+	while(m_msgToSend.empty()==false)
+	{
+		msgToSend = m_msgToSend.front();
+
+		if(send(sock,msgToSend.c_str(),sizeof(msgToSend),0) < 0)
+		{
+			log->ERROR("试图发送msg时失败，msg为：%s，错误原因为：%s", msgToSend, strerror(errno));
+		}
+		m_msgToSend.pop();
+
+	}
+	return 0;	
+}
 string getSession()
 {
 	string session = m_vccID + "-" + m_deviceID;
@@ -69,7 +87,7 @@ int CAgent::setStatus(DetailState st,bool easy_mode = true)
 	return 0;
 }
 
-int CAgent::handle_message(string msg)
+int CAgent::handle_message(const string& msg)
 {
 	log()->LOG("收到消息 %s",msg.c_str());
 	size_t pos = msg.find("<acpMessage");
@@ -78,7 +96,7 @@ int CAgent::handle_message(string msg)
 		log()->ERROR("座席收到的消息格式错误(没有<acp),具体消息为 %s",msg.c_str());
 		return -1;
 	}
-	msg = msg.substr(msg.find("<acpMessage"));
+	msg = msg.substr(pos);
 
 	xml_document<> doc;
 	
@@ -424,8 +442,6 @@ CAgent::CAgent()
 
 int CAgent::initial()
 {
-
-	
 	char msg[200];
 	sprintf(msg,"<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"

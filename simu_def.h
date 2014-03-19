@@ -1,15 +1,18 @@
+#ifndef __simu_def__
+#define __simu_def__
 #include <string>
 #include <map>
 #include <queue>
 #include <sys/time.h>
 #include <errno.h>
-using namespace std;
 
 typedef char VccID_t[32];
 typedef char AgentID_t[32];
 typedef char AgentPasswd_t[32];
 typedef char SessionID_t[64];
 typedef char TimeStamp_t[64];
+typedef char DeviceID_t[64];
+
 
 typedef enum PhoneState_t 
 {
@@ -48,13 +51,32 @@ typedef enum DetailState_t
 	AG_WORKING_AFTER_CALL,
 
 }
-
+typedef struct Agent_t
+{
+    int          type; 
+    VccID_t      vccID; 
+    AgentID_t    agentID;
+	DeviceID_t   deviceID;
+	AgentState_t agentStatus;
+	PhoneState_t phoneStatus;
+	int          master;//0|1
+} Agent_t;
 typedef struct Device_t 
 {
 	PhoneState_t    phonestatus;
     long            legID;
     DeviceID_t      deviceID;
 } Device_t;
+
+typedef struct Parameter_t
+{
+	DeviceID_t callID;
+	Agent_t    agent;
+	Cause_t    cause;
+} Parameter_t;
+
+
+
 
 typedef enum EventClass_t
 {
@@ -183,7 +205,58 @@ typedef enum EventType_t
 } EventType_t;
 
 
-typde struct MsgParser_t
+typedef struct ACPEventHeader_t 
+{
+    SessionID_t    sessionID;
+    SessionID_t     serialID;
+	int             serviceID;
+    TimeStamp_t     timeStamp;
+    EventClass_t   eventClass;
+    EventType_t    eventType;
+} ACPEventHeader_t;
+
+typedef Parameter_t ACPGeneralConfEvent_t;
+
+typedef struct ACPConfirmationEvent_t 
+{
+    union
+    {
+        ACPGeneralConfEvent_t     generalConf;
+		ACPInitialConfEvent_t     initialConf;
+		ACPSignOutConfEvent_t     signOutcConf;
+		ACPQueryAgentStatus_t     queryagentstatus;
+		ACPQueryAgentCallInfo_t   queryAgentCallInfo;
+		ACPGetCallData_t          getCallData;
+    }u;
+} ACPConfirmationEvent_t;
+
+typedef Parameter_t ACPEventReportEvent_t;
+
+typedef struct ACPUnsolicitedEvent_t
+{
+    union
+    {
+        ACPEventReportEvent_t     generalEventReport;
+		ACPOrigatedEvent_t        origatedEventReport;
+		ACPAnswerRequestEvent_t   answerRequestEventReport;
+		ACPCallinfoEvent_t        callinfoEventReport;
+		ACPReleaseEvent_t         releaseEventReport;
+ 		ACPHangupCallEvent_t      hangupCallEventReport;
+		ACPRecordInfoEvent_t      recordInfoEventReport;
+   } u;
+} ACPUnsolicitedEvent_t;
+
+typedef struct ACPEvent_t
+{
+    ACPEventHeader_t eventHeader;
+    union
+    {
+        ACPConfirmationEvent_t    acpConfirmation;
+        ACPUnsolicitedEvent_t     acpEventReport;
+    } event;
+} ACPEvent_t;
+
+typedef struct MsgParser_t
 {
 	SessionID_t    sessionID;
     SessionID_t     serialID;
@@ -194,18 +267,19 @@ typde struct MsgParser_t
 
 } MsgParser_t;
 
+
 class CConf
 {
 public:
-	string webIP;
-	string webPort;			
-	string ctiIP;		
+	std::string webIP;
+	std::string webPort;			
+	std::string ctiIP;		
 	int ctiPort;
 	int agentNum;
-	string agentID;
-	string logFile;
-	string vccID;
-	
+	std::string agentID;
+	std::string logFile;
+	std::string vccID;
+    std::map <std::string,EventType_t> eventTypeMap;	
 	CConf();
 	int validate();
 private:
@@ -219,16 +293,16 @@ class CCenter
 public:
 	int initial_sock;
 	int initial_sock_state; //0:disconnected    1:connected
-	map < int, queue <string> > webSocket;
-	map <string,CAgent*> agentID_CAgent_Map;
+	std::map < int, std::queue <string> > webSocket;
+	
 	int agentNum;
-	vector <string> agentID;
+	std::vector <std::string> agentID;
 	int totalCall;
 	int successCall;
-	string ctiIp;
+	std::string ctiIp;
 	short ctiPort;
-	string ipc;// 连接web服务器的socket
-	string CTI;
+	std::string ipc;// 连接web服务器的socket
+	std::string CTI;
 
 	CCenter();
 	~CCenter();
@@ -238,3 +312,4 @@ public:
 
 
 
+#endif
