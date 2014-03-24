@@ -1,3 +1,7 @@
+#ifndef __CAGENT__
+#define __CAGENT__
+#include <string>
+
 class CAgent
 {
 public:
@@ -7,49 +11,58 @@ public:
 	int send_message();
 	//更新座席的状态，支持两种模式，默认的easy模式不检查状态转移的合法性，而严格状态则会检查并告警
 	int setStatus(DetailState_t, bool easy_mode = true );		
-	CMessage message;
 	//发送request请求
 	int initial();
 	int signOut();
 	int signIn();
 	int setIdle();
 	int setBusy();
+	int sendHeartBeat();
+	int agentReport();
 	
 	//每个座席都有一个唯一的日志文件，根据等级不同分为LOG和ERROR
 	CLOG* log();
-	AgentState_t agentState();
+	AgentState_t m_agentStatus;
+	PhoneState_t m_phoneStatus;
+	bool isSignIn;
+	AgentPasswd_t m_passwd;
+
 	int sign_sock();
 	int initial_sock();
 	void set_sign_sock(int);
 	void set_initial_sock)(int);
-	void set_agentState(AgentState_t);
+	
+	void CAcpParse::BuildGeneralConf(ACPGeneralConfEvent_t &generalConf,xml_node<>* hBody);
+	int setAgentStatus(DetailState_t);
 
 private:
-	string m_ready;
+	bool m_isSignIn;
+	ACPEvent_t m_acpEvent;
+	static std::set<std::string> allowed_cmd;
+	static std::map <std::string,EventType_t> eventTypeMap;
+	std::string m_ready;
 	CLOG* m_log;
 	
 	AgentID_t m_destAgentID;
 	VccID_t m_vccID;
 	AgentID_T m_agentID;
-	Passwd_t m_passwd;
+	
     SessionID_t m_sessionID;
-	AgentState_t m_agentStatus;
-	PhoneState_t m_phoneStatus;
 	DeviceID_t m_deviceID;				 //cti分配的设备ID
 	TimeStamp_t m_timeStamp; 		//在座席登录后系统分配的时间戳
 	
 	int m_sign_sock;                       //初始为-1
 	int m_initial_sock;		    	 //initial_socket句柄
+	int	m_lMsgReceived;				//描述接收到的消息是否成功
 
-
 	
 	
 	
-	string m_initial_IP;
+	std::string m_initial_IP;
 	int m_initial_Port;
 
 	//用于signIn的socket相关
-	string m_signIn_IP;
+	std::string m_signIn_IP;
 	int m_signIn_Port;
 
 	int m_totalCall;     
@@ -65,6 +78,7 @@ private:
 	CAgent();
 	~CAgent();
 
-	queue <string> m_msgToSend;   //待发送消息
-	queue <string> m_msgRecieved;
+	std::queue <std::string> m_msgToSend;   //待发送消息
+	
 };
+#endif

@@ -12,8 +12,8 @@ typedef char AgentPasswd_t[32];
 typedef char SessionID_t[64];
 typedef char TimeStamp_t[64];
 typedef char DeviceID_t[64];
-
-
+const int MSG_FAILURE = -1;
+const int MSG_SUCCESS = 0;
 typedef enum PhoneState_t 
 {
     CS_IDLE = 0,
@@ -61,6 +61,11 @@ typedef struct Agent_t
 	PhoneState_t phoneStatus;
 	int          master;//0|1
 } Agent_t;
+typedef struct Cause_t  
+{
+    int             code;
+    Description_t   desc;
+} Cause_t;
 typedef struct Device_t 
 {
 	PhoneState_t    phonestatus;
@@ -217,6 +222,24 @@ typedef struct ACPEventHeader_t
 
 typedef Parameter_t ACPGeneralConfEvent_t;
 
+typedef struct ACPAgentParam_t
+{
+	int             idleStatus;  //ºô½Ð½áÊøºó´¦Àí±êÖ¾0£º±£³ÖÔÚAgentWorkingAfterCall×´Ì¬1£º×Ô¶¯½øÈëAgentReady×´Ì¬
+	Description_t   groupID;    //
+    int             agentType ;//0£ºÆÕÍ¨»°ÎñÔ±1£º°à³¤2£ºÖÊ¼ìÔ±
+    int             locked; //0£ºÎ´Ëø¶¨1£ºÒÑËø¶¨
+	int             allTimeRecord;  //0£º²»Â¼  1£ºÆÕÍ¨Â¼Òô
+	int             deviceType;     //0£º²»Â¼  1£ºÆÕÍ¨Â¼Òô
+	Description_t   ctiEvent;       //CTI×Ô¶¯»úºÅ
+} ACPAgentParam_t;
+
+typedef struct ACPSignOutConfEvent_t
+{
+    Parameter_t      parameter ;
+	ACPAgentParam_t  agentParam ;
+} ACPSignOutConfEvent_t;
+
+
 typedef struct ACPConfirmationEvent_t 
 {
     union
@@ -271,45 +294,23 @@ typedef struct MsgParser_t
 class CConf
 {
 public:
-	std::string webIP;
-	std::string webPort;			
+	
+	int webPort;			
 	std::string ctiIP;		
 	int ctiPort;
 	int agentNum;
 	std::string agentID;
 	std::string logFile;
 	std::string vccID;
-    std::map <std::string,EventType_t> eventTypeMap;	
-	CConf();
-	int validate();
-private:
-	DeviceID_t deviceID;
-
+	int ready;
+	std::string passwd;
 };
 
-
-class CCenter
+typedef struct serverInfo
 {
-public:
-	int initial_sock;
-	int initial_sock_state; //0:disconnected    1:connected
-	std::map < int, std::queue <string> > webSocket;
-	
-	int agentNum;
-	std::vector <std::string> agentID;
-	int totalCall;
-	int successCall;
-	std::string ctiIp;
-	short ctiPort;
-	std::string ipc;// 连接web服务器的socket
-	std::string CTI;
-
-	CCenter();
-	~CCenter();
-};
-
-
-
-
-
+ //  <N-CTS ip="192.168.2.217" port="24001"/>	CString dn;
+	string Ip;
+	long    port;
+	string protocol;
+}serverInfo;
 #endif

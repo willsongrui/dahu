@@ -9,11 +9,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <memory.h>
-using namespace std;
+
 class CLOG
 {
 public:
-	CLOG(string);
+	CLOG(std::string);
 	~CLOG();
 	void ERROR(const char* fmt,...);
 	void LOG(const char* fmt,...);

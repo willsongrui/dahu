@@ -7,18 +7,36 @@
 #include <errno.h>
 #include <stdio.h>
 #include <memory.h>
+#include "CAgent.h"
+#include <map>
+#include <queue>
+
 #define MAX_EVENTS 1000
+
 
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
 map<int,string> socket_agentID_map;  //socket和agent的映射map
 map<string,CAgent*> agentID_agent_map;
 queue<int> socket_Not_In_Epoll;		 //还未加入到EPOLL中的socket
-CConf conf = CConf();
+CConf conf;
 LOG* simu_log;						
-int listenWeb;						 //ipc的socket句柄
 
 
+void agentReportAlarm()
+{
+
+	map<string, CAgent*>::iterator iter;
+	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	{
+		if(iter->second->m_isSignIn == true)
+		{
+			iter->second->agentReport();
+		}
+	}
+	alarm(110);
+
+}
 int main()
 {
 	//系统的日志文件
@@ -46,7 +64,7 @@ int main()
 	simu_log->LOG("EPOLL加载成功");
 	
 	//监听web服务器
-	listenWeb = create_connection_to_web(conf.webSocket);
+	int listenWeb = create_connection_to_web(conf.webSocket);
 	if(listenWeb < 0)
 	{
 		simu_log->ERROR("IPC socket错误");
@@ -162,8 +180,5 @@ int main()
 			
 		}
 	}
-
-
-
 
 }

@@ -23,17 +23,12 @@ int create_connection_to_cti(string ip, int port, CAgent* agent)
 		agent->log()->ERROR("创建cti套接字失败,失败原因: %s",strerror(errno));
 		return -1;
 	}
-	int flags = fcntl(sockFd,F_GETFL);
-	if(flags < 0)
+	if(setnonblocking(sockFd) < 0)
 	{
-		agent->log()->ERROR("得到cti套接字flag失败,失败原因: %s",strerror(errno));
-		return -1;	
-	}
-	if(fcntl(sockFd,F_SETFL,flags|O_NONBLOCK) < 0)
-	{
-		agent->log()->ERROR("设置web套接字为非阻塞模式失败,失败原因: %s",strerror(errno));
+		agent->log()->ERROR("create_connection_to_cti时设置非阻塞模式失败");
 		return -1;
 	}
+
 	struct sockaddr_in addr;
 	memset(addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
@@ -80,10 +75,17 @@ int create_agents()
 	{
 		CAgent* agent = new CAgent();
 		agent->m_initial_ip = conf.ctiIP;
-		agent->m_initial_port = ctiPort;
+		agent->m_initial_port = conf.ctiPort;
 		agent->m_agentID = add_int_to_string(conf.agentID, i);
 		agent->m_deviceID = add_int_to_string(conf.deviceID, i);
-			
+		agent->m_ready = conf.ready;
+		agent->m_isSignIn = false;
+		strcpy(agent->m_passwd, conf.passwd.c_str());
+
+
+		agent->log()->LOG("座席初始化成功，agentID为%s，deviceID为%s，initialIP为%s,initialPORT为%d", agent->m_agentID, agent->m_deviceID\
+			agent->m_initial_ip, agent->m_initial_port);
+
 		int agentfd = create_connection_to_cti();
 		if(agentfd < 0)
 		{
@@ -96,8 +98,11 @@ int create_agents()
 			return -1;
 		}
 
-		agent->sock = agentfd;
-		
+		agent->m_initial_sock = agentfd;
+		agent->m_connected = false;
+		socket_agentID_map.erase(agentfd);
+		agentID_agent_map.erase(agent->agentID);
+
 		socket_agentID_map.insert(make_pair(agentfd, agent->agentID));
 		agentID_agent_map.insert(make_pair(agent->agentID,agent));
 		
@@ -108,7 +113,7 @@ int create_agents()
 
 int load_config(const string& confFile)
 {
-	fs = open(confFile.c_str(),O_RDONLY);
+	int fs = open(confFile.c_str(),O_RDONLY);
 	if(fs < 0)
 	{
 		simu_log->ERROR("打开配置文件 %s 出错,错误原因: %s",confFile.c_str(),strerror(errno));
@@ -130,14 +135,15 @@ int load_config(const string& confFile)
 		simu_log->ERROR("配置文件格式错误");
 		return -1;
 	}
-	xml_node<>* root;
-	xml_node<>* webSocket;
-	xml_node<>* ctiIP;
-	xml_node<>* ctiPort;
-	xml_node<>* vccID;
-	xml_node<>* agentNum;
-	xml_node<>* agentID;
-	xml_node<>* webPort;
+	xml_node<>* root = NULL;
+	xml_node<>* ctiIP = NULL;
+	xml_node<>* ctiPort = NULL;
+	xml_node<>* vccID = NULL;
+	xml_node<>* agentNum = NULL;
+	xml_node<>* agentID = NULL;
+	xml_node<>* webPort = NULL;
+	xml_node<>* ready = NULL;
+	xml_node<>* passwd = NULL;
 
 	root = doc.first_node();
 	if(!root)
@@ -154,8 +160,10 @@ int load_config(const string& confFile)
 	vccID = root->first_node("vccID");
 	agentNum = root->first_node("agentNum");
 	agentID = root->first_node("agentID");
-		
-	if(!(root && webSocket && ctiIP && ctiPort && vccID && agentNum && agentID))
+	ready = root->first_node("ready");	
+	passwd = root->first_node("passwd");
+
+	if(!(root && passwd && ready && webPort && ctiIP && ctiPort && vccID && agentNum && agentID))
 	{
 		simu_log->ERROR("配置文件节点不全");
 		return -1;	
@@ -168,6 +176,8 @@ int load_config(const string& confFile)
 	conf.vccID = string(vccID->value());
 	conf.agentNum = atoi(agentNum->value());
 	conf.agentID = string(agentID->value());
+	conf.ready = atoi(ready->value());
+	conf.passwd = string(passwd->value());
 	simu_log->LOG("配置文件读取成功");
 	
 	delete root;
@@ -177,6 +187,8 @@ int load_config(const string& confFile)
 	delete vccID;
 	delete agentNum;
 	delete agentID;
+	delete passwd;
+	delete ready;
 
 	return 0;
 }
