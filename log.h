@@ -1,3 +1,5 @@
+#ifndef __log__
+#define __log__
 #include <sys/time.h>
 #include <string>
 #include <sys/types.h>
@@ -34,3 +36,4 @@ private:
 
 	}
 };
+#endif

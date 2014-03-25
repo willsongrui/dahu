@@ -6,7 +6,7 @@
 #include "rapidxml/rapidxml_print.hpp"
 #include "simu_def.h"
 using namespace rapidxml;
-
+using namespace std;
 #define RELEASE_AND_EXIT delete header, body, \
 	timeStamp, sessionID, type, name;\
 	return -1;
@@ -21,8 +21,8 @@ extern queue<int> socket_not_in_epoll;
 
 int CAgent::send_message()
 {
-	if(sock < 0)
-		log->ERROR("座席socket还没准备好");
+	if(m_isConnected == false)
+		log()->ERROR("座席socket还没准备好");
 	string msgToSend;
 	while(m_msgToSend.empty()==false)
 	{
@@ -30,7 +30,7 @@ int CAgent::send_message()
 
 		if(send(sock,msgToSend.c_str(),sizeof(msgToSend),0) < 0)
 		{
-			log->ERROR("试图发送msg时失败，msg为：%s，错误原因为：%s", msgToSend, strerror(errno));
+			log()->ERROR("试图发送msg时失败，msg为：%s，错误原因为：%s", msgToSend, strerror(errno));
 		}
 		m_msgToSend.pop();
 
@@ -527,12 +527,18 @@ int CAgent::BuildCauseInfo(Cause_t &causeInfo,xml_node<>* body)
 	{
 		causeInfo.code = atoi(code->value());
 		strcpy(causeInfo.desc, desc->value());
+
 	}
 	else
 	{
-		causeInfo,code = 0;
+		causeInfo.code = 0;
 		casueInfo.desc = "";
 	}
+	if(causeInfo.code!=0)
+	{
+		log()->ERROR("收到错误消息，cause code为%d，失败描述为%s", causeInfo.code, causeInfo.desc);
+	}
+
 	delete code,desc,cause;
 	return 0;
 }
@@ -561,7 +567,7 @@ int CAgent::BuildIntialConf(ACPInitialConfEvent_t &initialConf,xml_node<>* body)
 	initialConf.port = atol(port->value());
 	
 	strcpy(m_signIn_IP, ip->value());
-	m_signIn_Port = atol(port->value());
+	m_signIn_Port = atoi(port->value());
 
 	delete code,desc,ip,port,parameter;
 	return 0;
@@ -584,20 +590,32 @@ int CAgentParse::BuildCallinfo(Callinfo_t &callInfo, xml_node<>* body)
 	}
 	xml_attribute<>* calledDevice = HCallinfo->first_attribute("calledDevice");
 	if(calledDevice!=NULL)
+	{
 		strcpy(callInfo.calledDevice,calledDevice->value());
+		m_calledDevice = callInfo.calledDevice;
+	}
 
 	xml_attribute<>* origCalledDevice = HCallinfo->first_attribute("origCalledDevice");
 	if(origCalledDevice!=NULL)
-		strcpy(callInfo.orgCalledDevice, orgCalledDevice->value());
+	{
+		strcpy(callInfo.orgCalledDevice, origCalledDevice->value());
+		m_orgCalledDevice = callInfo.orgCalledDevice;
+	}
 
 
-	xml_attribute<>* origCallingDevice = HCallinfo->first_attribute("origCallingDevice");
-	if(origCallingDevice!=NULL)
-		strcpy(callInfo.callingDevice,origCallingDevice->value());
+	xml_attribute<>* origCallingDevice = HCallinfo->first_attribute("CallingDevice");
+	if(CallingDevice!=NULL)
+	{
+		strcpy(callInfo.callingDevice,CallingDevice->value());
+		m_callingDevice = callInfo.callingDevice;
+	}
 
-	xml_attribute<>* orgCallingDevice = HCallinfo->first_attribute("callingDevice");
+	xml_attribute<>* orgCallingDevice = HCallinfo->first_attribute("origCallingDevice");
 	if(orgCallingDevice!=NULL)
+	{
 		strcpy(callInfo.orgCallingDevice,callingDevice->value());
+		m_orgCallingDevice = callInfo.orgCallingDevice;
+	}
 
 	xml_attribute<>* callData = hCallinfo->first_attribute("callData");
 	if(callData!=NULL)
@@ -684,6 +702,7 @@ int CAgent::BuildHangupCallInfo(ACPHangupCallEvent_t &hangupCallEventReport,xml_
 	}
 	return 0;
 }
+
 int CAgent::BuildReleaseEventReport(ACPEvent_t &msg,xml_node<>* body)
 {
 	ASSERT(body != NULL);
@@ -773,7 +792,7 @@ int CAgent::msgParse(const string& msg)
 		return -1;
 	}
 	xml_node<>* root = doc.first_node("acpMessage");
-	xml_node<>* header = NULL, body = NULL;
+	xml_node<>* header = NULL, *body = NULL;
 	xml_node<>* timeStamp = NULL, *sessionID = NULL, *type = NULL, *name = NULL;
 	if(!root)
 		RELEASE_AND_EXIT
@@ -796,6 +815,7 @@ int CAgent::msgParse(const string& msg)
 				strncpy(m_acpEvent.eventHeader.timeStamp, timeStamp->value(), sizeof(timeStamp->value()));
 				strncpy(m_acpEvent.eventHeader.sessionID, sessionID->value(), sizeof(sessionID->value()));
 				strcpy(m_sessionID, sessionID->value());
+				
 				if(strcmp(type->value(), "request"))
 				{
 					m_acpEvent.eventClass = EC_REQUEST;
@@ -840,29 +860,44 @@ int CAgent::msgParse(const string& msg)
 						if(hAgentParam)
 						{
 							msg->event.acpConfirmation.u.signOutcConf.agentParam.idleStatus = 0;
-							xml_attribute<>* idleStatus = hAgentParam->first_attribute("idelStatus");
+							xml_attribute<>* idleStatus = hAgentParam->first_attribute("idleStatus");
 				
 							if(idleStatus)
+							{
 								msg->event.acpConfirmation.u.signOutcConf.agentParam.idleStatus = atoi(idleStatus->value());
-							strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.groupID,sXmlGetAttrValue(hAgentParam,"locked"));
+								m_idleStatus = atoi(idleStatus->value());
+							}
+							//strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.groupID,sXmlGetAttrValue(hAgentParam,"locked"));
 							xml_attribute<>* agentType = hAgentParam->first_attribute("agentType");
 							if(agentType)
+							{
+								m_agentType = atoi(agentType->value());
 								msg->event.acpConfirmation.u.signOutcConf.agentParam.agentType = atoi(agentType->value());
+							}
 							xml_attribute<>* locked = hAgentParam->first_attribute("locked");
 							if(locked)
+							{
 								msg->event.acpConfirmation.u.signOutcConf.agentParam.locked = atoi(locked->value());
+								m_locked = atoi(locked->value());
+							}
 							xml_attribute<>* allTimeRecord = hAgentParam->first_attribute("allTimeRecord");
 							if(allTimeRecord)
-								msg->event.acpConfirmation.u.signOutcConf.agentParam.allTimeRecord = atoi(allTimeRecord);
+							{
+								msg->event.acpConfirmation.u.signOutcConf.agentParam.allTimeRecord = atoi(allTimeRecord->value());
+								m_allTimeRecord = atoi(allTimeRecord->value());
+							}
 							xml_attribute<>* deviceType = hAgentParam->first_attribute("deviceType");
 							if(deviceType)
+							{
 								msg->event.acpConfirmation.u.signOutcConf.agentParam.deviceType = atoi(deviceType->value());
+								m_deviceType = atoi(deviceType->value());
+							}
 							xml_attribute<>* ctiEvent = hAgentParam->first_attribute("ctiEvent");
 							if(ctiEvent)
 								strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,ctiEvent->value());
 							else
 								strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,"");
-							delete idelStatus, agentType, locked, allTimeRecord, deviceType, ctiEvent;
+							delete idleStatus, agentType, locked, allTimeRecord, deviceType, ctiEvent;
 						}
 						break;
 					
@@ -1396,7 +1431,7 @@ CAgent::CAgent()
 	
 	if(CAgent::eventTypeMap.empty()==true)
 	{
-		CAgent::eventTypeMap.insert(make_pair("heartBeat", ACP_HEART_BEAT));	
+		CAgent::eventTypeMap.insert(make_pair("HeartBeat", ACP_HEART_BEAT));	
 		CAgent::eventTypeMap.insert(make_pair("Initial", ACP_Initial_CONF));	
 		CAgent::eventTypeMap.insert(make_pair("SignIn", ACP_SignIn_CONF));	
 		CAgent::eventTypeMap.insert(make_pair("SignOut", ACP_SignOut_CONF));

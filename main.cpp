@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <memory.h>
-#include "CAgent.h"
+
 #include <map>
 #include <queue>
 
@@ -20,9 +20,9 @@ CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
 //map<string,CAgent*> agentID_agent_map;
 //queue<int> socket_Not_In_Epoll;		 //还未加入到EPOLL中的socket
 CConf conf;
-LOG* simu_log;						
+CLOG* simu_log;						
 
-
+using namespace std;
 void agentReportAlarm()
 {
 
@@ -64,13 +64,13 @@ int main()
 	simu_log->LOG("EPOLL加载成功");
 	
 	//监听web服务器
-	int listenWeb = create_connection_to_web(conf.webSocket);
+	int listenWeb = create_connection_to_web(conf.webPort);
 	if(listenWeb < 0)
 	{
 		simu_log->ERROR("IPC socket错误");
 		return 0;
 	}
-	socket_Not_In_Epoll.push(listenWeb);
+	center.socket_Not_In_Epoll.push(listenWeb);
 
 
 
@@ -83,9 +83,9 @@ int main()
 	struct epoll_event ev,events[MAX_EVENTS];
 	while(true)
 	{
-		while(socket_Not_In_Epoll.empty()!=0)
+		while(center.socket_Not_In_Epoll.empty()!=0)
 		{
-			memset(ev,0,sizeof(ev));
+			memset(&ev,0,sizeof(ev));
 			int sock = socket_Not_In_Epoll.front();
 			socket_Not_In_Epoll.pop();
 			ev.events = EPOLLIN|EPOLLOUT|EPOLLRDHUP;
@@ -174,7 +174,7 @@ int main()
 			else if(ev.events & EPOLLERR)
 			{
 				simu_log->ERROR("套接字 %d 错误, 错误原因 %s ",ev.data.fd,strerror(errno));
-				close_sock_and_erase(ev.data.fd)
+				close_sock_and_erase(ev.data.fd);
 					
 			}
 			

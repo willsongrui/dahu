@@ -1,11 +1,17 @@
 #include "simulation.h"
 #include "simu_def.h"
+#include <string>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/epoll.h>
 
+using namespace std;
 extern CCenter center;
 //extern map<int,string> conf.socket_agentID_map;
 //extern map<string,CAgent*> conf.agentID_agent_map;
 extern int epollfd;
-extern LOG* simu_log;
+extern CLOG* simu_log;
 extern CConf conf;
 //extern queue<int> conf.socket_Not_In_Epoll;
 
@@ -14,7 +20,7 @@ int create_connection_to_cti(string ip, int port, CAgent* agent)
 {
 	if((agent==NULL)||(agent->log()==NULL))
 	{
-		simu_log->ERORR("create_connectino_to_cti时传入指针为空");
+		simu_log->ERROR("create_connectino_to_cti时传入指针为空");
 		return -1;
 	}
 	int sockFd = socket(AF_INET,SOCK_STREAM,0);
@@ -47,7 +53,7 @@ int create_connection_to_cti(string ip, int port, CAgent* agent)
 }
 int add_to_epoll(int agentfd)
 {
-	conf.socket_Not_In_Epoll.push(agentfd);
+	center.socket_Not_In_Epoll.push(agentfd);
 	return 0;
 }
 int add_int_to_string(string& base, int n)

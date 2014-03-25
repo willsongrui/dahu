@@ -432,17 +432,17 @@ public:
 	int agentReport();
 	
 	int BuildGeneralConf(ACPGeneralConfEvent_t &generalConf, xml_node<>* hBody);
-	int BuildAgentInfo(Agent_t &agentInfo,TXMLHandle body);
+	int BuildAgentInfo(Agent_t &agentInfo,xml_node<>* body);
 	int BuildCauseInfo(Cause_t &causeInfo,xml_node<>* body);
 	int BuildIntialConf(ACPInitialConfEvent_t &initialConf,xml_node<>* body);
 	int BuildCallinfo(Callinfo_t &callInfo, xml_node<>* body);
 	int BuildGeneralEventReport(ACPEventReportEvent_t &generalEventReport,xml_node<>* body);
 	int BuildAnswerRequestEventReport(ACPEvent_t &msg,xml_node<>* body);
-	int BuildHangupCallInfo(ACPHangupCallEvent_t &hangupCallEventReport,xml_doc<>* body);
+	int BuildHangupCallInfo(ACPHangupCallEvent_t &hangupCallEventReport,xml_node<>* body);
 	int BuildReleaseEventReport(ACPEvent_t &msg,xml_node<>* body);
 	int BuildRecordInfo(ACPRecordInfoEvent_t &recordInfoEventReport, xml_node<>* body);
 	int BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body);
-	int msgParse(const std::string& msg)
+	int msgParse(const std::string& msg);
 
 
 
@@ -458,10 +458,20 @@ public:
 	AgentState_t m_agentStatus;
 	PhoneState_t m_phoneStatus;
 	bool isSignIn;
+	bool isConnected;
 	AgentPasswd_t m_passwd;
-
-private:
+	int m_idleStatus;
+	int m_agentType;
+	int m_locked;
+	int m_allTimeRecord;
+	int m_deviceType;
+	DeviceID_t m_calledDevice;
+	DeviceID_t m_orgCalledDevice;
+	DeviceID_t m_callingDevice;
+	DeviceID_t m_orgcallingDevice;
 	bool m_isSignIn;
+private:
+	
 	ACPEvent_t m_acpEvent;
 	static std::set<std::string> allowed_cmd;
 	static std::map <std::string,EventType_t> eventTypeMap;
@@ -471,7 +481,7 @@ private:
 	AgentID_t m_destAgentID;
 	VccID_t m_vccID;
 	AgentID_t m_agentID;
-	
+
     SessionID_t m_sessionID;
 	DeviceID_t m_deviceID;				 //cti分配的设备ID
 	TimeStamp_t m_timeStamp; 		//在座席登录后系统分配的时间戳
