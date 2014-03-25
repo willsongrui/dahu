@@ -4,8 +4,8 @@
 #include "rapidxml/rapidxml.hpp"
 #include "rapidxml/rapidxml_utils.hpp"
 #include "rapidxml/rapidxml_print.hpp"
-
-
+#include "simu_def.h"
+using namespace rapidxml;
 
 #define RELEASE_AND_EXIT delete header, body, \
 	timeStamp, sessionID, type, name;\
@@ -140,8 +140,9 @@ string find_cmd(const string& msg, int end)
 }	
 
 
-int CAgent::handle_message(const string& msg, bool quick=true)
+int CAgent::handle_message(string& msg, bool quick=true)
 {
+
 	log()->LOG("收到消息 %s",msg.c_str());
 	size_t pos = msg.find("<acpMessage");
 	if(pos == string::npos)
@@ -179,8 +180,6 @@ int CAgent::handle_message(const string& msg, bool quick=true)
 //根据成员变量 m_acpEvent
 int handle_msg()
 {
-	UNREFERENCED_PARAMETER(wp);
-
 	ACPEvent_t* msg = (ACPEvent_t*)&m_acpEvent;
 	if(msg == NULL)
 		return;
@@ -685,7 +684,7 @@ int CAgent::BuildHangupCallInfo(ACPHangupCallEvent_t &hangupCallEventReport,xml_
 	}
 	return 0;
 }
-int CAcpParse::BuildReleaseEventReport(ACPEvent_t &msg,xml_node<>* body)
+int CAgent::BuildReleaseEventReport(ACPEvent_t &msg,xml_node<>* body)
 {
 	ASSERT(body != NULL);
 	BuildGeneralEventReport(msg.event.acpEventReport.u.releaseEventReport.parameter,body);
@@ -1367,7 +1366,7 @@ int CAgent::handle_message(const string& msg)
 }
 */
 
-map <string,EventType_t> CAgent::eventTypeMap;
+map<string,EventType_t> CAgent::eventTypeMap;
 CAgent::CAgent()
 {
 	

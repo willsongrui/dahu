@@ -2,12 +2,12 @@
 #include "simu_def.h"
 
 extern CCenter center;
-extern map<int,string> socket_agentID_map;
-extern map<string,CAgent*> agentID_agent_map;
+//extern map<int,string> conf.socket_agentID_map;
+//extern map<string,CAgent*> conf.agentID_agent_map;
 extern int epollfd;
 extern LOG* simu_log;
 extern CConf conf;
-extern queue<int> socket_Not_In_Epoll;
+//extern queue<int> conf.socket_Not_In_Epoll;
 
 
 int create_connection_to_cti(string ip, int port, CAgent* agent)
@@ -47,7 +47,7 @@ int create_connection_to_cti(string ip, int port, CAgent* agent)
 }
 int add_to_epoll(int agentfd)
 {
-	socket_Not_In_Epoll.push(agentfd);
+	conf.socket_Not_In_Epoll.push(agentfd);
 	return 0;
 }
 int add_int_to_string(string& base, int n)
@@ -100,11 +100,11 @@ int create_agents()
 
 		agent->m_initial_sock = agentfd;
 		agent->m_connected = false;
-		socket_agentID_map.erase(agentfd);
-		agentID_agent_map.erase(agent->agentID);
+		conf.socket_agentID_map.erase(agentfd);
+		conf.agentID_agent_map.erase(agent->agentID);
 
-		socket_agentID_map.insert(make_pair(agentfd, agent->agentID));
-		agentID_agent_map.insert(make_pair(agent->agentID,agent));
+		conf.socket_agentID_map.insert(make_pair(agentfd, agent->agentID));
+		conf.agentID_agent_map.insert(make_pair(agent->agentID,agent));
 		
 		agent->initial();
 	}
@@ -197,7 +197,7 @@ int all_initial()
 {
 
 	map <string, CAgent*>::iterator iter;
-	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	for(iter = conf.agentID_agent_map.begin(); iter != conf.agentID_agent_map.end(); iter++)
 	{
 		if((iter->second)->initial() < 0)
 		{
@@ -211,7 +211,7 @@ int all_initial()
 int all_signIn()
 {
 	map <string, CAgent*>::iterator iter;
-	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	for(iter = conf.agentID_agent_map.begin(); iter != conf.agentID_agent_map.end(); iter++)
 	{
 		if((iter->second)->signIn() < 0)
 		{
@@ -226,7 +226,7 @@ int all_signIn()
 int all_setIdle()
 {
 	map <string, CAgent*>::iterator iter;
-	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	for(iter = conf.agentID_agent_map.begin(); iter != conf.agentID_agent_map.end(); iter++)
 	{
 		if((iter->second)->setIdle() < 0)
 		{
@@ -241,7 +241,7 @@ int all_setIdle()
 int all_setBusy()
 {
 	map <string, CAgent*>::iterator iter;
-	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	for(iter = conf.agentID_agent_map.begin(); iter != conf.agentID_agent_map.end(); iter++)
 	{
 		if((iter->second)->setBusy() < 0)
 		{
@@ -256,7 +256,7 @@ int all_setBusy()
 int all_signOut()
 {
 	map <string, CAgent*>::iterator iter;
-	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	for(iter = conf.agentID_agent_map.begin(); iter != conf.agentID_agent_map.end(); iter++)
 	{
 		if((iter->second)->signOut() < 0)
 		{
@@ -272,7 +272,7 @@ int all_report(int sockFd)
 {
 	string report_message = string(conf.agentNum);
 	map<string, CAgent*>::iterator iter;
-	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	for(iter = conf.agentID_agent_map.begin(); iter != conf.agentID_agent_map.end(); iter++)
 	{
 		message = message + " " + string(iter->sockState) + " " + string(iter->curState) + " " + string(iter->successCall) + " " + string(iter->totalCall);
 	}
@@ -325,30 +325,68 @@ int handle_web_message(int sockFd,const string& message)
 	return 0;
 }
 
-void msgSplit(vector<string>& vec, const string& message)
+void strip(string& str)
 {
-	string endFlag = "</acpMessage>";
+	int x = 0;
+	int y = str.size();
+	for(int i=0; i<str.size(); i++)
+	{
+		if(str[i] == ' ')
+			x = x + 1;
+		else
+			break;
+	}
+	for(int j=str.size(); j > x; j--)
+	{
+		if(str[j] == ' ')
+			y = y - 1;
+		else
+			break;
+	}
+	str = str.substr(x, y-x);
+
+
+}
+
+void strip_vec(vector<string>& vec)
+{
+	for(int i=0; i < vec.size(); i++)
+	{
+		strip(vec[i]);
+	}
+}
+
+void msgSplit(vector<string>& vec, const string& message, string endFlag)
+{
+	
 	int len = endFlag.length();
-	int pos;
-	int pre;
-	while(pos!=message.end())
+	int pos = -1;
+	int pre = 0;
+	pos = message.find(endFlag);
+	string remain;
+	while(pos!=string::npos)
 	{
 		vec.push_back(message.substr(pre,pos+len-pre));
 		pre = pos + len;
-		pos = message.find(pre);
+		pos = message.find(endFlag, pre);
 	}
+	if(pre!=string::npos)
+	{
+		remain = message.substr(pre);
+	}
+	vec.push_back(remain);
+	strip_vec(vec);
 
 }
 int handle_message(int sockFd,const string& message)
 {
 
-	vector<string> msg;
-	msgSplit(msg, message);
-
 	int n;
 	int ret = 0;
+	vector<string> msg;
 	if(center.webSocket.find(sockFd)!=center.webSocket.end())		//webSocket是接收web命令的套接字
 	{
+		msgSplit(msg, message, string("</webMsg>"));
 		for(int i=0; i<msg.size(); i++)
 		{	
 			n = handle_web_message(msg[i]);
@@ -370,10 +408,16 @@ int handle_message(int sockFd,const string& message)
 		}
 		else
 		{
-			for(int i=0; i < msg.size(); i++)
+			
+			if(agent->remain_msg.empty()!=false)
+				message = agent->remain_msg + message;
+			
+			msgSplit(msg, message, string("</acpMessage>"));
+			agent->remain_msg = msg[msg.size()-1];
+			for(int i=0; i < msg.size()-1; i++)
 			{
 				n = agent->handle_message(msg[i]);
-				if(n<0)
+				if(n < 0)
 				{
 					simu_log -> ERROR("处理agent_message时失败:%s",msg[i].c_str());
 					ret = -1;
@@ -448,8 +492,8 @@ CAgent* find_agent(const string& agentID)
 	if(agentID == NULL)
 		return 0;
 	map<string,CAgent*>::iterator iter;
-	iter = agentID_agent_map.find(agentID); 
-	if(iter !=agentID_agent_map.end())
+	iter = conf.agentID_agent_map.find(agentID); 
+	if(iter !=conf.agentID_agent_map.end())
 		return iter->second;
 	else
 		return -1;
@@ -458,8 +502,8 @@ CAgent* find_agent(const string& agentID)
 string find_agentID(int sockFd)
 {
 	map<int,string>::iterator iter;
-	iter = socket_agentID_map.find(sockFd);
-	if(iter == socket_agentID_map.end())
+	iter = conf.socket_agentID_map.find(sockFd);
+	if(iter == conf.socket_agentID_map.end())
 	{
 		return string("NONEXIST");
 	}
@@ -486,7 +530,7 @@ int close_sock_and_erase(int sockFd)
 		simu_log->ERROR("当试图在寻找sockFd为%d的agentID时失败",sockFd);
 		return -1;
 	}
-	agentID_agent_map.erase(sockFd);
+	conf.agentID_agent_map.erase(sockFd);
 	CAgent* agent = find_agent(agentID);
 	if(agent == NULL)
 	{

@@ -16,9 +16,9 @@
 
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
-map<int,string> socket_agentID_map;  //socket和agent的映射map
-map<string,CAgent*> agentID_agent_map;
-queue<int> socket_Not_In_Epoll;		 //还未加入到EPOLL中的socket
+//map<int,string> socket_agentID_map;  //socket和agent的映射map
+//map<string,CAgent*> agentID_agent_map;
+//queue<int> socket_Not_In_Epoll;		 //还未加入到EPOLL中的socket
 CConf conf;
 LOG* simu_log;						
 
@@ -27,7 +27,7 @@ void agentReportAlarm()
 {
 
 	map<string, CAgent*>::iterator iter;
-	for(iter = agentID_agent_map.begin(); iter != agentID_agent_map.end(); iter++)
+	for(iter = center.agentID_agent_map.begin(); iter != center.agentID_agent_map.end(); iter++)
 	{
 		if(iter->second->m_isSignIn == true)
 		{
