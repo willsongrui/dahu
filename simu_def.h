@@ -51,7 +51,13 @@ typedef enum
 }AgentState_t;
 typedef enum 
 {
-	try_detail,
+	AGENT_BUSY,
+	AGENT_IDLE,
+	AGENT_SIGNIN,
+	AGENT_SIGNOUT,
+	AGENT_RELEASE_SUCCESS,
+	AGENT_ANSWERING,
+	
 }DetailState_t;
 
 typedef struct
@@ -384,19 +390,20 @@ typedef struct
 class CConf
 {
 public:
-	
+	CConf();
 	int webPort;			
 	std::string ctiIP;		
 	int ctiPort;
 	int agentNum;
 	std::string agentID;
+	std::string deviceID;
 	std::string logFile;
 	std::string vccID;
 	int ready;
 	std::string passwd;
 };
 
-typedef struct serverInfo
+typedef struct
 {
  //  <N-CTS ip="192.168.2.217" port="24001"/>	CString dn;
 	std::string Ip;
@@ -409,9 +416,9 @@ class CAgent
 {
 public:
 	//处理来自CTI的与座席相关的消息
-	int handle_message(const std::string&);
+	int handle_message(std::string&, int sockFd, bool quick=true);
 	//将待发送的消息发送给CTI（待发送的消息保存在队列中）
-	int send_message();
+	//int send_message();
 	//更新座席的状态，支持两种模式，默认的easy模式不检查状态转移的合法性，而严格状态则会检查并告警
 	int setStatus(DetailState_t, bool easy_mode = true );		
 	//发送request请求
@@ -424,10 +431,10 @@ public:
 	int forceIdle();
 	int forceOut();
 	int releaseCall();
-
+	int send_message(int sockFd);
 	std::string getHeader();
-	int sendMsg(const std::string&);
-	int sendMsgEx(std::string&, char*);
+	int sendMsg(std::string&, int type);
+	int sendMsgEx(std::string&, const char*);
 	int sendHeartBeat();
 	int agentReport();
 	
@@ -442,8 +449,8 @@ public:
 	int BuildReleaseEventReport(ACPEvent_t &msg,xml_node<>* body);
 	int BuildRecordInfo(ACPRecordInfoEvent_t &recordInfoEventReport, xml_node<>* body);
 	int BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body);
-	int msgParse(const std::string& msg);
-
+	int msgParse(std::string& msg);
+	int find_sock_type(int);
 
 
 
@@ -457,8 +464,8 @@ public:
 	CLOG* log();
 	AgentState_t m_agentStatus;
 	PhoneState_t m_phoneStatus;
-	bool isSignIn;
-	bool isConnected;
+	//bool m_is_sign_in;
+	bool m_connected;
 	AgentPasswd_t m_passwd;
 	int m_idleStatus;
 	int m_agentType;
@@ -468,10 +475,11 @@ public:
 	DeviceID_t m_calledDevice;
 	DeviceID_t m_orgCalledDevice;
 	DeviceID_t m_callingDevice;
-	DeviceID_t m_orgcallingDevice;
-	bool m_isSignIn;
-private:
-	
+	DeviceID_t m_orgCallingDevice;
+	bool m_is_sign_in;
+	std::string m_initial_IP;
+	int m_initial_Port;
+
 	ACPEvent_t m_acpEvent;
 	static std::set<std::string> allowed_cmd;
 	static std::map <std::string,EventType_t> eventTypeMap;
@@ -486,23 +494,16 @@ private:
 	DeviceID_t m_deviceID;				 //cti分配的设备ID
 	TimeStamp_t m_timeStamp; 		//在座席登录后系统分配的时间戳
 	
-	int m_sign_sock;                       //初始为-1
+	int m_signIn_sock;                       //初始为-1
 	int m_initial_sock;		    	 //initial_socket句柄
 	int	m_lMsgReceived;				//描述接收到的消息是否成功
-
-	
-	
-	
-	std::string m_initial_IP;
-	int m_initial_Port;
-
 	//用于signIn的socket相关
 	std::string m_signIn_IP;
 	int m_signIn_Port;
 
-	int m_totalCall;     
-	int m_successCall;
-	
+	int m_total_call_num;     
+	int m_success_call_num;
+	int m_failure_call_num;
 	DetailState_t m_curState;
 	DetailState_t m_preState;
 	
@@ -513,14 +514,9 @@ private:
 	CAgent();
 	~CAgent();
 
-	std::queue <std::string> m_msgToSend;   //待发送消息
-	
+	std::queue <std::string> m_signIn_msgToSend;   //待发送消息
+	std::queue <std::string> m_initial_msgToSend;
 };
-
-
-
-
-
 
 class CCenter
 {
@@ -529,17 +525,14 @@ public:
 	std::map <int, std::queue<std::string> > webSocket;
 	
 	std::map<int, std::string> socket_agentID_map;  //socket和agent的映射map
-	std::map<std::string,CAgent*> agentID_agent_map;
+	std::map<std::string, CAgent*> agentID_agent_map;
 	std::queue<int> socket_Not_In_Epoll;	
 	
 	int agentNum;
-	std::vector <std::string> agentID;
+	//std::vector <std::string> agentID;
 	int totalCall;
 	int successCall;
 	CCenter();
 	
 };
-
-
-
 #endif

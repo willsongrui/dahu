@@ -7,7 +7,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <memory.h>
-
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <map>
 #include <queue>
 
@@ -29,7 +30,7 @@ void agentReportAlarm()
 	map<string, CAgent*>::iterator iter;
 	for(iter = center.agentID_agent_map.begin(); iter != center.agentID_agent_map.end(); iter++)
 	{
-		if(iter->second->m_isSignIn == true)
+		if(iter->second->m_is_sign_in == true)
 		{
 			iter->second->agentReport();
 		}
@@ -86,8 +87,8 @@ int main()
 		while(center.socket_Not_In_Epoll.empty()!=0)
 		{
 			memset(&ev,0,sizeof(ev));
-			int sock = socket_Not_In_Epoll.front();
-			socket_Not_In_Epoll.pop();
+			int sock = center.socket_Not_In_Epoll.front();
+			center.socket_Not_In_Epoll.pop();
 			ev.events = EPOLLIN|EPOLLOUT|EPOLLRDHUP;
 			ev.data.fd = sock;
 			if(epoll_ctl(epollfd,EPOLL_CTL_ADD,sock,&ev)<0)
