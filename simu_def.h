@@ -5,11 +5,11 @@
 #include <queue>
 #include <sys/time.h>
 #include <errno.h>
+#include <set>
 #include "log.h"
 #include "rapidxml/rapidxml.hpp"  
 #include "rapidxml/rapidxml_utils.hpp"  
 #include "rapidxml/rapidxml_print.hpp"
-#include <set>
 
 using namespace rapidxml;
 
@@ -20,13 +20,13 @@ typedef char 			SessionID_t[64];
 typedef char 			TimeStamp_t[64];
 typedef char 			DeviceID_t[64];
 typedef char            DATA_t[1024];
-
 typedef char            ServerIP_t[49];
 typedef char            Description_t[256];
 
 
 const int MSG_FAILURE = -1;
 const int MSG_SUCCESS = 0;
+const char LoadBalance[10] = "on";
 typedef enum  
 {
     CS_IDLE = 0,
@@ -483,13 +483,13 @@ public:
 	ACPEvent_t m_acpEvent;
 	static std::set<std::string> allowed_cmd;
 	static std::map <std::string,EventType_t> eventTypeMap;
-	std::string m_ready;
+	int m_ready;
 	CLOG* m_log;
 	
 	AgentID_t m_destAgentID;
 	VccID_t m_vccID;
 	AgentID_t m_agentID;
-
+	std::string m_vdcode;
     SessionID_t m_sessionID;
 	DeviceID_t m_deviceID;				 //cti分配的设备ID
 	TimeStamp_t m_timeStamp; 		//在座席登录后系统分配的时间戳
@@ -530,8 +530,9 @@ public:
 	
 	int agentNum;
 	//std::vector <std::string> agentID;
-	int totalCall;
-	int successCall;
+	int m_totalCall;
+	int m_successCall;
+	int m_failCall;
 	CCenter();
 	
 };

@@ -13,14 +13,16 @@
 
 using namespace rapidxml;
 using namespace std;
-#define RELEASE_AND_EXIT delete header, body, \
-	timeStamp, sessionID, type, name;\
-	return -1;
-#define RELEASE_AND_EXIT_0 delete header, body, \
-	timeStamp, sessionID, type, name;\
-	return 0; 
+#define RELEASE_AND_EXIT return -1;
+//_delete header, body, \
+	//timeStamp, sessionID, type, name;\
+	//return -1;
+#define RELEASE_AND_EXIT_0 return 0;
+//_delete header, body, \
+	//timeStamp, sessionID, type, name;\
+	//return 0; 
 
-std::map <std::string,EventType_t> CAgent::eventTypeMap;
+
 extern CCenter center;
 //queue<int> socket_not_in_epoll;
 
@@ -103,14 +105,17 @@ int CAgent::sendMsg(string& str, int type)
 }
 int CAgent::sendMsgEx(string& msg,const char* strName)
 {
+	log()->LOG("进入sendMsgEx, msg = %s, strName = %s", msg.c_str(), strName);
 	int type = 1;
 	if(strcmp(strName, "initial")==0)
 		type = 0;
 	char strTrace[] = "on";
 	char str[500];
-	msg.replace(msg.find("<header></header>"),17,getHeader());
-	sprintf(str,"%s %s %s %s","1000", strTrace,strName,msg.c_str());
+	//msg.replace(msg.find("<header></header>"),17,getHeader());
+	log()->LOG(msg.c_str());
+	snprintf(str, 500, "%s %s %s %s","1000", strTrace, strName, msg.c_str());
 	string temp = string(str);
+	log()->LOG("离开sendMsgEx");
 	return sendMsg(temp, type);
 }
 int CAgent::sendHeartBeat()
@@ -150,7 +155,7 @@ int CAgent::setAgentStatus(DetailState_t st,bool easy_mode = true)
 	return 0;
 }
 
-string find_cmd(const string& msg, int end)
+string CAgent::find_cmd(const string& msg, int end)
 {
 	int pos;
 	pos = msg.find("1000 off");
@@ -246,11 +251,11 @@ int CAgent::handle_msg()
 	ACPEvent_t* msg = (ACPEvent_t*)&m_acpEvent;
 	if(msg == NULL)
 		return -1;
-    switch (msg->eventHeader.eventType) 
+    switch (m_acpEvent.eventHeader.eventType) 
     {
 	case ACP_Initial_CONF:
 		{
-			if(msg->event.acpConfirmation.u.initialConf.code == 0)
+			if(m_acpEvent.event.acpConfirmation.u.initialConf.code == 0)
 			{
 				log()->LOG("成功收到initial Response消息");
 				m_signIn_IP = msg->event.acpConfirmation.u.initialConf.ip;
@@ -433,7 +438,7 @@ int CAgent::handle_msg()
 				msg->event.acpEventReport.u.generalEventReport.agent.phoneStatus);
 			if( msg->event.acpEventReport.u.releaseEventReport.callInfo.count> 0 )
 			{
-				delete [] msg->event.acpEventReport.u.releaseEventReport.callInfo.device;//.callInfo.callinfo.device;
+				//_delete [] msg->event.acpEventReport.u.releaseEventReport.callInfo.device;//.callInfo.callinfo.device;
 				msg->event.acpEventReport.u.releaseEventReport.callInfo.count = 0;
 				msg->event.acpEventReport.u.releaseEventReport.callInfo.device = NULL;
 			}*/
@@ -555,7 +560,7 @@ int CAgent::BuildAgentInfo(Agent_t &agentInfo,xml_node<>* body)
     if(!(vccID&&agentID&&deviceID&&phoneStatus&&agentStatus))
 	{
     	log()->ERROR("BuildAgentInfo 错误");
-    	delete vccID, agentID, deviceID, phoneStatus, agentStatus;
+    	//_delete vccID, agentID, deviceID, phoneStatus, agentStatus;
     	return -1;
     }
 	strcpy(agentInfo.vccID, vccID->value());
@@ -573,7 +578,7 @@ int CAgent::BuildAgentInfo(Agent_t &agentInfo,xml_node<>* body)
 	if(master)
 		agentInfo.master = atoi(master->value());
 	
-	delete vccID, agentID, deviceID, master, agentStatus, phoneStatus;
+	//_delete vccID, agentID, deviceID, master, agentStatus, phoneStatus;
 	return 0;
 }
 
@@ -611,7 +616,7 @@ int CAgent::BuildCauseInfo(Cause_t &causeInfo,xml_node<>* body)
 		log()->ERROR("收到错误消息，cause code为%d，失败描述为%s", causeInfo.code, causeInfo.desc);
 	}
 
-	delete code,desc,cause;
+	//_delete code,desc,cause;
 	return 0;
 }
 int CAgent::BuildIntialConf(ACPInitialConfEvent_t &initialConf,xml_node<>* body)
@@ -644,7 +649,7 @@ int CAgent::BuildIntialConf(ACPInitialConfEvent_t &initialConf,xml_node<>* body)
 	//strcpy(m_signIn_IP, ip->value());
 	m_signIn_Port = atoi(port->value());
 
-	delete code,desc,ip,port,parameter;
+	//_delete code,desc,ip,port,parameter;
 	return 0;
 }
 int CAgent::BuildCallinfo(Callinfo_t &callInfo, xml_node<>* body)
@@ -715,7 +720,7 @@ int CAgent::BuildCallinfo(Callinfo_t &callInfo, xml_node<>* body)
 		callInfo.device[i].legID = atoi(sXmlGetAttrValue(hDevice, "legID"));
 		callInfo.device[i].phoneStatus = (PhoneState_t)atoi(sXmlGetAttrValue(hDevice, "phoneStatus"));
 	}*/
-	delete HCallinfo, calledDevice, orgCallingDevice, origCalledDevice, orgCallingDevice, callData, count;
+	//_delete HCallinfo, calledDevice, orgCallingDevice, origCalledDevice, orgCallingDevice, callData, count;
 	return 0;
 }
 
@@ -779,10 +784,10 @@ int CAgent::BuildHangupCallInfo(ACPHangupCallEvent_t &hangupCallEventReport,xml_
 	if(agentRet<0 || causeRet < 0)
 	{
 		log()->ERROR("BuildHangupCallInfo 错误");
-		delete hCallInfo;
+		//_delete hCallInfo;
 		return -1;
 	}
-	delete hCallInfo;
+	//_delete hCallInfo;
 	return 0;
 }
 
@@ -809,7 +814,7 @@ int CAgent::BuildReleaseEventReport(ACPEvent_t &msg,xml_node<>* body)
 			msg.event.acpEventReport.u.releaseEventReport.releaseLegID = atoi(releaseLegID->value());
 
 	}
-	delete releaseLegID, hRelease;
+	//_delete releaseLegID, hRelease;
 	return 0;
 }
 
@@ -850,7 +855,7 @@ void CAgent::get_agent_phone_status(xml_node<>* body)
 		this->phoneStatus = atoi(phoneStatus);
 	if(agentStatus!=NULL)
 		this->agentStatus = atoi(agentStatus);
-	delete agent, phoneStatus, agentStatus;
+	//_delete agent, phoneStatus, agentStatus;
 }
 */
 int CAgent::BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body)
@@ -872,9 +877,11 @@ int CAgent::BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body)
 int CAgent::msgParse(string& msg)
 {
 	xml_document<> doc;
+	char str_msg[200];
+	strcpy(str_msg, msg.c_str());
 	try
 	{
-		doc.parse<0>(msg.c_str());
+		doc.parse<0>(str_msg);
 	}
 	catch (parse_error e)
 	{
@@ -883,15 +890,21 @@ int CAgent::msgParse(string& msg)
 	}
 	xml_node<>* root = doc.first_node("acpMessage");
 	xml_node<>* header = NULL, *body = NULL;
-	xml_node<>* timeStamp = NULL, *sessionID = NULL, *type = NULL, *name = NULL;
+	xml_node<>* timeStamp = NULL, *sessionID = NULL;
+	xml_attribute<>* type = NULL, *name = NULL;
+
 	if(!root)
+	{
 		RELEASE_AND_EXIT
+	}
 	else
 	{
 		header = root->first_node("header");
 		body = root->first_node("body");
 		if(!(header&&body))
+		{
 			RELEASE_AND_EXIT
+		}
 		else
 		{
 			timeStamp = header->first_node("timeStamp");
@@ -899,7 +912,9 @@ int CAgent::msgParse(string& msg)
 			type = body->first_attribute("type");
 			name = body->first_attribute("name");
 			if(!(timeStamp&&sessionID&&type&&name))
+			{
 				RELEASE_AND_EXIT
+			}
 			else
 			{
 				strncpy(m_acpEvent.eventHeader.timeStamp, timeStamp->value(), sizeof(timeStamp->value()));
@@ -908,15 +923,15 @@ int CAgent::msgParse(string& msg)
 				
 				if(strcmp(type->value(), "request")==0)
 				{
-					m_acpEvent.eventClass = EC_REQUEST;
+					m_acpEvent.eventHeader.eventClass = EC_REQUEST;
 				}
 				else if(strcmp(type->value(), "response")==0)
 				{
-					m_acpEvent.eventClass = EC_CONFIRMATION;
+					m_acpEvent.eventHeader.eventClass = EC_CONFIRMATION;
 				}
 				else if(strcmp(type->value(), "event")==0)
 				{
-					m_acpEvent.eventClass = EC_UNSOLICITED;
+					m_acpEvent.eventHeader.eventClass = EC_UNSOLICITED;
 				}
 				else
 				{
@@ -941,20 +956,22 @@ int CAgent::msgParse(string& msg)
 				switch (m_acpEvent.eventHeader.eventType)
 				{
 					case ACP_Initial_CONF:
+					{
 						BuildIntialConf(m_acpEvent.event.acpConfirmation.u.initialConf,body);
 						break;
+					}
 					case ACP_SignIn_CONF:
-						BuildGeneralConf(msg->event.acpConfirmation.u.signOutcConf.parameter,body);
+					{
+						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.signOutcConf.parameter,body);
 						xml_node<>* hAgentParam = body->first_node("agentParam");
-						
 						if(hAgentParam)
 						{
-							msg->event.acpConfirmation.u.signOutcConf.agentParam.idleStatus = 0;
+							m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.idleStatus = 0;
 							xml_attribute<>* idleStatus = hAgentParam->first_attribute("idleStatus");
 				
 							if(idleStatus)
 							{
-								msg->event.acpConfirmation.u.signOutcConf.agentParam.idleStatus = atoi(idleStatus->value());
+								m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.idleStatus = atoi(idleStatus->value());
 								m_idleStatus = atoi(idleStatus->value());
 							}
 							//strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.groupID,sXmlGetAttrValue(hAgentParam,"locked"));
@@ -962,36 +979,35 @@ int CAgent::msgParse(string& msg)
 							if(agentType)
 							{
 								m_agentType = atoi(agentType->value());
-								msg->event.acpConfirmation.u.signOutcConf.agentParam.agentType = atoi(agentType->value());
+								m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.agentType = atoi(agentType->value());
 							}
 							xml_attribute<>* locked = hAgentParam->first_attribute("locked");
 							if(locked)
 							{
-								msg->event.acpConfirmation.u.signOutcConf.agentParam.locked = atoi(locked->value());
+								m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.locked = atoi(locked->value());
 								m_locked = atoi(locked->value());
 							}
 							xml_attribute<>* allTimeRecord = hAgentParam->first_attribute("allTimeRecord");
 							if(allTimeRecord)
 							{
-								msg->event.acpConfirmation.u.signOutcConf.agentParam.allTimeRecord = atoi(allTimeRecord->value());
+								m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.allTimeRecord = atoi(allTimeRecord->value());
 								m_allTimeRecord = atoi(allTimeRecord->value());
 							}
 							xml_attribute<>* deviceType = hAgentParam->first_attribute("deviceType");
 							if(deviceType)
 							{
-								msg->event.acpConfirmation.u.signOutcConf.agentParam.deviceType = atoi(deviceType->value());
+								m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.deviceType = atoi(deviceType->value());
 								m_deviceType = atoi(deviceType->value());
 							}
 							xml_attribute<>* ctiEvent = hAgentParam->first_attribute("ctiEvent");
 							if(ctiEvent)
-								strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,ctiEvent->value());
+								strcpy(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,ctiEvent->value());
 							else
-								strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,"");
-							delete idleStatus, agentType, locked, allTimeRecord, deviceType, ctiEvent;
+								strcpy(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,"");
+							//_delete idleStatus, agentType, locked, allTimeRecord, deviceType, ctiEvent;
 						}
 						break;
-					
-						
+					}
 					case ACP_SignOut_CONF:
 					case ACP_SetBusy_CONF:
 					case ACP_SetIdle_CONF:
@@ -1025,38 +1041,38 @@ int CAgent::msgParse(string& msg)
 					case ACP_Bridge_CONF:
 					case ACP_SetCTIParam_CONF:
 					case ACP_SetCallData_CONF:
-						BuildGeneralConf(msg->event.acpConfirmation.u.generalConf,body);
+						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.generalConf,body);
 						break;
 					case ACP_QueryAgentStatus_CONF:
-						BuildGeneralConf(msg->event.acpConfirmation.u.queryagentstatus.parameter,body);
-						BuildAgentInfo(msg->event.acpConfirmation.u.queryagentstatus.destAgentInfo,body);
+						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.queryagentstatus.parameter,body);
+						BuildAgentInfo(m_acpEvent.event.acpConfirmation.u.queryagentstatus.destAgentInfo,body);
 						break;
 					case ACP_QueryAgentCallInfo_CONF:
-						BuildGeneralConf(msg->event.acpConfirmation.u.queryAgentCallInfo.parameter,body);
-						BuildAgentInfo(msg->event.acpConfirmation.u.queryAgentCallInfo.destAgentInfo,body);
-						BuildCallinfo(msg->event.acpConfirmation.u.queryAgentCallInfo.callinfo,body);
+						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.parameter,body);
+						BuildAgentInfo(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.destAgentInfo,body);
+						BuildCallinfo(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.callinfo,body);
 						break;
 					//alerting
 					case ACP_OnOrigated:
-						BuildGeneralEventReport(msg->event.acpEventReport.u.origatedEventReport.parameter,body);
-						BuildCallinfo(msg->event.acpEventReport.u.origatedEventReport.callInfo,body);	
+						BuildGeneralEventReport(m_acpEvent.event.acpEventReport.u.origatedEventReport.parameter,body);
+						BuildCallinfo(m_acpEvent.event.acpEventReport.u.origatedEventReport.callInfo,body);	
 						break;
 					case ACP_OnAnswerRequest:
-						BuildAnswerRequestEventReport(*msg,body);
+						BuildAnswerRequestEventReport(m_acpEvent,body);
 						break;
 					//CallingNo="" CalledNo=""
 					case ACP_OnHangupCallInConf:
-						BuildHangupCallInfo(msg->event.acpEventReport.u.hangupCallEventReport,body);
+						BuildHangupCallInfo(m_acpEvent.event.acpEventReport.u.hangupCallEventReport,body);
 						break;
 					case ACP_OnBeginRecordSuccess:
-						BuildRecordInfo(msg->event.acpEventReport.u.recordInfoEventReport,body);
+						BuildRecordInfo(m_acpEvent.event.acpEventReport.u.recordInfoEventReport,body);
 						break;
 					case ACP_OnForceIdle:
 					case ACP_OnForceBusy:
 					case ACP_OnForceOut:
 						break;
 					case ACP_GetCallData_CONF:
-						BuildGeneralEventReport(msg->event.acpConfirmation.u.getCallData.parameter,body);
+						BuildGeneralEventReport(m_acpEvent.event.acpConfirmation.u.getCallData.parameter,body);
 						/*
 						TXMLHandle hCallData   = xmlGetElememt(body, "callData");
 						if(hCallData)
@@ -1068,15 +1084,15 @@ int CAgent::msgParse(string& msg)
 						break;
 					case ACP_OnRequestRelease:
 					case ACP_OnHoldCallRelease:
-						BuildReleaseEventReport(*msg,body);
+						BuildReleaseEventReport(m_acpEvent,body);
 						break;
 					//include callinfo
 					case ACP_OnReturnFromIVR:
 					case ACP_OnConsultationBack:
 					case ACP_OnReturnFromPhone:
 					case ACP_OnReleaseSuccess:
-						BuildReleaseEventReport(*msg,body);
-						BuildCallinfo(msg->event.acpEventReport.u.releaseEventReport.callInfo,body);
+						BuildReleaseEventReport(m_acpEvent,body);
+						BuildCallinfo(m_acpEvent.event.acpEventReport.u.releaseEventReport.callInfo,body);
 						break;
 					case ACP_OnAnswerSuccess:
 					case ACP_OnConsultationSuccess:
@@ -1095,7 +1111,7 @@ int CAgent::msgParse(string& msg)
 					case ACP_OnInserted:
 					case ACP_OnSignOuted:
 					case ACP_OnBridgeSuccess:
-						BuildCallinfoEventReport(*msg,body);
+						BuildCallinfoEventReport(m_acpEvent, body);
 						break;
 					//no callinfo 
 					case ACP_OnAnswerFailure:
@@ -1136,7 +1152,7 @@ int CAgent::msgParse(string& msg)
 					case ACP_OnListened:
 					case ACP_OnBridgeFailure:
 					case ACP_OnSystemMessage:
-						BuildGeneralEventReport(msg->event.acpEventReport.u.generalEventReport,body);
+						BuildGeneralEventReport(m_acpEvent.event.acpEventReport.u.generalEventReport,body);
 						break;
 					case ACP_HEART_BEAT:
 						break;					
@@ -1495,11 +1511,11 @@ map<string,EventType_t> CAgent::eventTypeMap;
 CAgent::CAgent()
 {
 	
-	inteval = statusAfterCall = -1;
+	//inteval = statusAfterCall = -1;
 	m_initial_sock = -1;
 	m_signIn_sock = -1;
 	m_connected = -1;
-	m_sockState = 0;
+	//m_sockState = 0;
 	m_total_call_num = 0;
 	m_success_call_num = 0;
 	m_ready = 0;
@@ -1510,8 +1526,8 @@ CAgent::CAgent()
 	memset(m_agentID, 0, sizeof(m_agentID));
 	memset(m_sessionID, 0, sizeof(m_sessionID));
 	memset(m_vccID, 0, sizeof(m_vccID));
-	memset(m_passwd, 0, sizeof(m_passwd);
-	memset(m_acpEvent, 0, sizeof(m_acpEvent));
+	memset(m_passwd, 0, sizeof(m_passwd));
+	memset(&m_acpEvent, 0, sizeof(m_acpEvent));
 	memset(m_timeStamp, 0, sizeof(m_timeStamp));
 
 	while(m_initial_msgToSend.empty() == false)
@@ -1599,7 +1615,7 @@ CAgent::CAgent()
 		CAgent::eventTypeMap.insert(make_pair("OnCallOutsideSuccTalk", ACP_OnCallOutsideSuccTalk));
 		CAgent::eventTypeMap.insert(make_pair("OnHoldSuccess", ACP_OnHoldSuccess));
 		CAgent::eventTypeMap.insert(make_pair("OnHoldFailure", ACP_OnHoldFailure));
-		CAgent::eventTypeMap.insert(make_pair("OnRetrieveHoldSuccess" ACP_OnRetrieveHoldSuccess));
+		CAgent::eventTypeMap.insert(make_pair("OnRetrieveHoldSuccess", ACP_OnRetrieveHoldSuccess));
 		CAgent::eventTypeMap.insert(make_pair("OnRetrieveHoldFailure", ACP_OnRetrieveHoldFailure));
 		CAgent::eventTypeMap.insert(make_pair("OnHoldCallRelease", ACP_OnHoldCallRelease));
 		CAgent::eventTypeMap.insert(make_pair("OnConferenceSuccess", ACP_OnConferenceSuccess));
@@ -1659,17 +1675,27 @@ int CAgent::initial()
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"Initial\">"
         "<parameter vdcode=\"%s\"/>"
-        "</body></acpMessage>",m_sessionID, m_vdcode);
+        "</body></acpMessage>", m_sessionID, m_vdcode.c_str());
 	
 	
 	log()->LOG("座席发送Initial消息：%s",msg);
 	//setStatus(Try2Initial);
-	return sendMsgEx(msg,"Initial");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str, "Initial");
 }
+CLOG* CAgent::log()
+{
+	if(m_log == NULL)
+	{
+		string agentName = string(m_agentID);
+		m_log = new CLOG(agentName);
 
+	}
+	return m_log;
+}
 int CAgent::signIn()
 {
-	sockState = 0;
+	//sockState = 0;
 	
 	
 	char msg[300];
@@ -1682,10 +1708,15 @@ int CAgent::signIn()
 	log()->LOG("座席发送signin消息：%s",msg);
     
     //setStatus(Try2SignIn);
-	return sendMsgEx(msg,"SignIn");
+    string msg_str = string(msg);
+	return sendMsgEx(msg_str, "SignIn");
 
 }
 
+CAgent::~CAgent()
+{
+	delete m_log;
+}
 
 int CAgent::signOut()
 {
@@ -1700,7 +1731,8 @@ int CAgent::signOut()
 	
 	log()->LOG("座席发送signOut消息：%s",msg);
 	//setStatus(Try2SignOut);
-	return sendMsgEx(msg,"Signout");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str, "Signout");
 }
 
 int CAgent::setIdle()
@@ -1716,7 +1748,8 @@ int CAgent::setIdle()
    	
 	log()->LOG("座席发送setIdle消息：%s",msg);
 	//setStatus(Try2SetIdle);
-	return sendMsgEx(msg,"SetIdle");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str,"SetIdle");
 }
 
 int CAgent::setBusy()
@@ -1731,7 +1764,8 @@ int CAgent::setBusy()
    	
 	log()->LOG("座席发送setBusy消息：%s",msg);
 	//setStatus(Try2SetBusy);
-	return sendMsgEx(msg,"SetBusy");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str, "SetBusy");
 }
 
 int CAgent::forceBusy()
@@ -1749,7 +1783,8 @@ int CAgent::forceBusy()
    	
 	log()->LOG("座席发送forceBusy消息：%s",msg);
 	//setStatus(Try2ForceBusy);
-	return sendMsgEx(msg,"ForceBusy");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str, "ForceBusy");
 }
 
 int CAgent::forceIdle()
@@ -1767,7 +1802,8 @@ int CAgent::forceIdle()
    	
 	log()->LOG("座席发送forceIdle消息：%s",msg);
 	//setStatus(Try2ForceIdle);
-	return sendMsgEx(msg,"ForceIdle");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str,"ForceIdle");
 }
 
 
@@ -1784,7 +1820,8 @@ int CAgent::forceOut()
     
 	log()->LOG("座席发送forceOut消息：%s",msg);
 	//setStatus(Try2ForceOut);
-	return sendMsgEx(msg,"ForceOut");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str,"ForceOut");
 }
 
 int CAgent::releaseCall()
@@ -1799,7 +1836,8 @@ int CAgent::releaseCall()
         "</body></acpMessage>", m_sessionID ,m_vccID,m_agentID,m_deviceID);    
 	log()->LOG("座席发送releaseCall消息：%s",msg);
 	//setStatus(Try2ReleaseCall);
-	return sendMsgEx(msg,"ReleaseCall");
+	string msg_str = string(msg);
+	return sendMsgEx(msg_str,"ReleaseCall");
 }
 
 

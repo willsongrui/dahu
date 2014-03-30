@@ -1,5 +1,3 @@
-#include "simulation.h"
-#include "simu_def.h"
 #include <string>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -11,7 +9,8 @@
 #include <sys/socket.h>
 #include <map>
 #include <queue>
-
+#include "simulation.h"
+#include "simu_def.h"
 #define MAX_EVENTS 1000
 
 
@@ -55,8 +54,10 @@ int main()
 		printf("打开配置文件错误\n");
 		return -1;
 	}
+	simu_log->LOG("读取配置文件成功");
 
 	epollfd = epoll_create(MAX_EVENTS);
+	
 	if(epollfd < 0)
 	{
 		simu_log->ERROR("EPOLL 错误");

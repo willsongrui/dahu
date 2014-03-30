@@ -73,6 +73,8 @@ int add_to_epoll(int agentfd)
 }
 string add_int_to_string(string& base, int n)
 {
+	simu_log->LOG(base.c_str());
+
 	if(base.length()<5)
 	 	return "WRONG";
 	string low = base.substr(base.length()-5);
@@ -136,7 +138,7 @@ int load_config(const string& confFile)
 	int fs = open(confFile.c_str(),O_RDONLY);
 	if(fs < 0)
 	{
-		simu_log->ERROR("打开配置文件 %s 出错,错误原因: %s",confFile.c_str(),strerror(errno));
+		simu_log->ERROR("打开配置文件 %s 出错,错误原因: %s", confFile.c_str(), strerror(errno));
 		return -1;
 	}
 	char config[1000];
@@ -164,7 +166,7 @@ int load_config(const string& confFile)
 	xml_node<>* webPort = NULL;
 	xml_node<>* ready = NULL;
 	xml_node<>* passwd = NULL;
-
+	xml_node<>* deviceID = NULL;
 	root = doc.first_node();
 	if(!root)
 	{
@@ -182,8 +184,8 @@ int load_config(const string& confFile)
 	agentID = root->first_node("agentID");
 	ready = root->first_node("ready");	
 	passwd = root->first_node("passwd");
-
-	if(!(root && passwd && ready && webPort && ctiIP && ctiPort && vccID && agentNum && agentID))
+	deviceID = root->first_node("deviceID");
+	if(!(root && passwd && ready && webPort &&deviceID && ctiIP && ctiPort && vccID && agentNum && agentID))
 	{
 		simu_log->ERROR("配置文件节点不全");
 		return -1;	
@@ -198,17 +200,19 @@ int load_config(const string& confFile)
 	conf.agentID = string(agentID->value());
 	conf.ready = atoi(ready->value());
 	conf.passwd = string(passwd->value());
+	conf.deviceID = string(deviceID->value());
+
 	simu_log->LOG("配置文件读取成功");
 	
-	delete root;
-	delete webPort;
-	delete ctiIP;
-	delete ctiPort;
-	delete vccID;
-	delete agentNum;
-	delete agentID;
-	delete passwd;
-	delete ready;
+	//_delete root;
+	//_delete webPort;
+	//_delete ctiIP;
+	//_delete ctiPort;
+	//_delete vccID;
+	//_delete agentNum;
+	//_delete agentID;
+	//_delete passwd;
+	//_delete ready;
 
 	return 0;
 }
@@ -399,7 +403,7 @@ void msgSplit(vector<string>& vec, const string& message, string endFlag)
 	strip_vec(vec);
 
 }
-int handle_message(int sockFd,string& message)
+int handle_message(int sockFd, string& message)
 {
 
 	int n;
