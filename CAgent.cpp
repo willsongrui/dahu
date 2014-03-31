@@ -61,7 +61,9 @@ int CAgent::send_message(int sockFd)
 			log()->LOG("试图向socket %d发送Initial消息", sockFd);
 			msgToSend = m_initial_msgToSend.front();
 			m_initial_msgToSend.pop();
-			strncpy(buff, msgToSend.c_str(), msgToSend.length());
+			sprintf(buff, "%s", msgToSend.c_str());
+			
+
 			int ret = send(sockFd, buff, sizeof(buff), 0);
 			if(ret < 0)
 			{
@@ -253,6 +255,7 @@ int CAgent::find_sock_type(int sockFd)
 		return 0;
 	if(sockFd == m_signIn_sock)
 		return 1;
+	log()->ERROR("尝试查找socket为%d 的类型时失败，当前座席的initial sock:%d, sign_in sock:%d");
 	return -1;
 }
 
@@ -281,6 +284,9 @@ int CAgent::handle_msg()
 					return -1;
 				}
 				add_to_epoll(sock);
+				//
+				log()->LOG("将signIn socket %d 加入到socket_agentID_map中", sock);
+				center.socket_agentID_map.insert(make_pair(sock, string(this->m_agentID)));
 				m_signIn_sock = sock;
 
 				//close initial sock???
@@ -887,6 +893,7 @@ int CAgent::BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body)
 
 int CAgent::msgParse(string& msg)
 {
+	log()->LOG("msgParse处理消息%s", msg.c_str());
 	xml_document<> doc;
 	char str_msg[200];
 	strcpy(str_msg, msg.c_str());
@@ -906,10 +913,12 @@ int CAgent::msgParse(string& msg)
 
 	if(!root)
 	{
+		log()->ERROR("root解析失败");
 		RELEASE_AND_EXIT
 	}
 	else
 	{
+		log()->LOG("成功解析root");
 		header = root->first_node("header");
 		body = root->first_node("body");
 		if(!(header&&body))
@@ -918,17 +927,23 @@ int CAgent::msgParse(string& msg)
 		}
 		else
 		{
+			log()->LOG("成功解析header, body");
 			timeStamp = header->first_node("timeStamp");
 			sessionID = header->first_node("sessionID");
 			type = body->first_attribute("type");
 			name = body->first_attribute("name");
-			if(!(timeStamp&&sessionID&&type&&name))
+			if(timeStamp)
+			{
+				strncpy(m_acpEvent.eventHeader.timeStamp, timeStamp->value(), sizeof(timeStamp->value()));
+			}
+			if(!(sessionID&&type&&name))
 			{
 				RELEASE_AND_EXIT
 			}
 			else
 			{
-				strncpy(m_acpEvent.eventHeader.timeStamp, timeStamp->value(), sizeof(timeStamp->value()));
+				log()->LOG("成功解析timeStamp, sessonID, type, name");
+				
 				strncpy(m_acpEvent.eventHeader.sessionID, sessionID->value(), sizeof(sessionID->value()));
 				strcpy(m_sessionID, sessionID->value());
 				
@@ -949,6 +964,8 @@ int CAgent::msgParse(string& msg)
 					log()->ERROR("type字段被解析成%s，我们不认识", type->value());
 					RELEASE_AND_EXIT
 				}
+				log()->LOG("成功解析消息type，为%s", type->value());
+
 				map <std::string,EventType_t>::iterator it;
 				it = CAgent::eventTypeMap.find(name->value());
 
@@ -968,11 +985,13 @@ int CAgent::msgParse(string& msg)
 				{
 					case ACP_Initial_CONF:
 					{
+						log()->LOG("成功解析消息name, 为%s", "ACP_Initial_CONF");
 						BuildIntialConf(m_acpEvent.event.acpConfirmation.u.initialConf,body);
 						break;
 					}
 					case ACP_SignIn_CONF:
 					{
+						log()->LOG("成功解析消息name, 为%s", "ACP_SignIn_CONF");
 						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.signOutcConf.parameter,body);
 						xml_node<>* hAgentParam = body->first_node("agentParam");
 						if(hAgentParam)
@@ -1052,30 +1071,37 @@ int CAgent::msgParse(string& msg)
 					case ACP_Bridge_CONF:
 					case ACP_SetCTIParam_CONF:
 					case ACP_SetCallData_CONF:
+						log()->LOG("成功解析消息name, 为%s", "***CONF");
 						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.generalConf,body);
 						break;
 					case ACP_QueryAgentStatus_CONF:
+						log()->LOG("成功解析消息name, 为%s", "ACP_QueryAgentStatus_CONF");
 						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.queryagentstatus.parameter,body);
 						BuildAgentInfo(m_acpEvent.event.acpConfirmation.u.queryagentstatus.destAgentInfo,body);
 						break;
 					case ACP_QueryAgentCallInfo_CONF:
+						log()->LOG("成功解析消息name, 为%s", "ACP_QueryAgentCallInfo_CONF");
 						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.parameter,body);
 						BuildAgentInfo(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.destAgentInfo,body);
 						BuildCallinfo(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.callinfo,body);
 						break;
 					//alerting
 					case ACP_OnOrigated:
+						log()->LOG("成功解析消息name, 为%s", "ACP_OnOrigated");
 						BuildGeneralEventReport(m_acpEvent.event.acpEventReport.u.origatedEventReport.parameter,body);
 						BuildCallinfo(m_acpEvent.event.acpEventReport.u.origatedEventReport.callInfo,body);	
 						break;
 					case ACP_OnAnswerRequest:
+						log()->LOG("成功解析消息name, 为%s", "ACP_OnAnswerRequest");
 						BuildAnswerRequestEventReport(m_acpEvent,body);
 						break;
 					//CallingNo="" CalledNo=""
 					case ACP_OnHangupCallInConf:
+						log()->LOG("成功解析消息name, 为%s", "ACP_OnHangupCallInConf");
 						BuildHangupCallInfo(m_acpEvent.event.acpEventReport.u.hangupCallEventReport,body);
 						break;
 					case ACP_OnBeginRecordSuccess:
+						log()->LOG("成功解析消息name, 为%s", "ACP_OnBeginRecordSuccess");
 						BuildRecordInfo(m_acpEvent.event.acpEventReport.u.recordInfoEventReport,body);
 						break;
 					case ACP_OnForceIdle:
@@ -1083,6 +1109,7 @@ int CAgent::msgParse(string& msg)
 					case ACP_OnForceOut:
 						break;
 					case ACP_GetCallData_CONF:
+						log()->LOG("成功解析消息name, 为%s", "ACP_GetCallData_CONF");
 						BuildGeneralEventReport(m_acpEvent.event.acpConfirmation.u.getCallData.parameter,body);
 						/*
 						TXMLHandle hCallData   = xmlGetElememt(body, "callData");

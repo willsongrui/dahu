@@ -1,11 +1,23 @@
-[14:48:52] LOG 座席初始化成功，agentID为0000106666665001，deviceID为0000206666665001，initialIP为192.168.2.191,initialPORT为14800
-[14:48:52] LOG 试图连接CTI服务器，socket为8
-[14:48:52] LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[14:48:52] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
-[14:48:52] LOG <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[14:48:52] LOG 离开sendMsgEx
-[14:48:52] LOG 将消息发送到队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[14:48:52] LOG 试图向socket 8发送Initial消息
-[14:48:52] LOG 成功发送消息1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>��d��z�, 长度为500
-[14:48:52] LOG 收到消息 <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
-[14:48:52] ERROR msgParse 错误
+[16:25:23] LOG 座席初始化成功，agentID为0000106666665001，deviceID为0000206666665001，initialIP为192.168.2.191,initialPORT为14800
+[16:25:23] LOG 试图连接CTI服务器，socket为8
+[16:25:23] LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[16:25:23] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
+[16:25:23] LOG <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[16:25:23] LOG 离开sendMsgEx
+[16:25:23] LOG 将消息发送到队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[16:25:23] LOG 试图向socket 8发送Initial消息
+[16:25:23] LOG 成功发送消息1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, 长度为500
+[16:25:23] LOG 收到消息 <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
+[16:25:23] LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
+[16:25:23] LOG 成功解析root
+[16:25:23] LOG 成功解析header, body
+[16:25:23] LOG 成功解析timeStamp, sessonID, type, name
+[16:25:23] LOG 成功解析消息type，为response
+[16:25:23] LOG 成功解析消息name, 为ACP_Initial_CONF
+[16:25:23] LOG 成功收到initial Response消息
+[16:25:23] LOG 试图连接CTI服务器，socket为9
+[16:25:23] LOG 座席发送signin消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="SignIn"><agent vccID="" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>
+[16:25:23] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="SignIn"><agent vccID="" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>, strName = SignIn
+[16:25:23] LOG <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="SignIn"><agent vccID="" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>
+[16:25:23] LOG 离开sendMsgEx
+[16:25:23] LOG 将消息发送到队列中：1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="SignIn"><agent vccID="" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>

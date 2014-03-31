@@ -15,7 +15,7 @@ int create_connection_to_cti(std::string ip, int port, CAgent* agent);
 std::string add_int_to_string(std::string& base, int n);
 int add_to_epoll(int agentfd);
 int handle_web_message(int sockFd, std::string&);
-CAgent* find_agent(const std::string&);
+//CAgent* find_agent(const std::string&);
 CAgent* find_agent(int sockFd);
 std::string find_agentID(int sockFd);
 #endif

@@ -122,9 +122,12 @@ int create_agents()
 
 		agent->m_initial_sock = agentfd;
 		agent->m_connected = false;
+
+		//若新登录的座席存在之前重名的，则将其在map中删除
 		center.socket_agentID_map.erase(agentfd);
 		center.agentID_agent_map.erase(string(agent->m_agentID));
-
+		
+		simu_log->LOG("将initial socket %d 加入到socket_agentID_map中", agentfd);
 		center.socket_agentID_map.insert(make_pair(agentfd, string(agent->m_agentID)));
 		center.agentID_agent_map.insert(make_pair(string(agent->m_agentID),agent));
 		
@@ -513,7 +516,7 @@ int setnonblocking(int sockFd)
 	}
 	return 0; 
 }
-
+/*
 CAgent* find_agent(const string& agentID)
 {
 	
@@ -524,7 +527,7 @@ CAgent* find_agent(const string& agentID)
 	else
 		return NULL;
 
-}
+}*/
 
 CAgent* find_agent(int sockFd)
 {	
@@ -548,9 +551,18 @@ string find_agentID(int sockFd)
 	iter = center.socket_agentID_map.find(sockFd);
 	if(iter == center.socket_agentID_map.end())
 	{
-
+		simu_log->ERROR("查找socket:%d时失败", sockFd);
+		map <int,string>::iterator it;
+		string sockets;
+		for(it = center.socket_agentID_map.begin(); it!=center.socket_agentID_map.end(); it++)
+		{
+			int cur_sock = it->first;
+			char temp[20];
+			sprintf(temp, "%d ", cur_sock);
+			sockets = sockets + string(temp);
+		}
+		simu_log->ERROR("当前socket_agentID_map中socket只含有%s", sockets.c_str());
 		string NOTFOUND("NONEXIST");
-		
 		return NOTFOUND;
 	}
 	
@@ -584,6 +596,7 @@ int close_sock_and_erase(int sockFd)
 		simu_log->ERROR("当试图在寻找sockFd为%d的agentID时失败",sockFd);
 		return -1;
 	}*/
+	simu_log->LOG("将socket:%d从socket_agentID_map中删掉", sockFd);
 	center.socket_agentID_map.erase(sockFd);
 	
 	CAgent* agent = find_agent(sockFd);
