@@ -1,6 +1,0 @@
-[11:44:10] LOG 座席初始化成功，agentID为0000021000031780，deviceID为0000021000031780，initialIP为192.168.2.136,initialPORT为36
-[11:44:10] LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[11:44:10] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
-[11:44:10] LOG <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[11:44:10] LOG 离开sendMsgEx
-[11:44:10] LOG 将消息发送到队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>

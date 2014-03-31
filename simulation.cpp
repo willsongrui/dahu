@@ -59,10 +59,10 @@ int create_connection_to_cti(string ip, int port, CAgent* agent)
 	int ret = connect(sockFd,(struct sockaddr*)(&addr), sizeof(addr));
 	if((ret<0)&&(errno!=EINPROGRESS))
 	{	
-		agent->log()->ERROR("试图connect时失败，错误原因：%s",strerror(errno));
+		agent->log()->ERROR("试图connect时失败，错误原因：%s", strerror(errno));
 		return -1;
 	}
-	
+	agent->log()->LOG("试图连接CTI服务器，socket为%d", sockFd);	
 	return sockFd;
 
 }
@@ -467,6 +467,7 @@ int send_message(int sockFd)
 			{
 				simu_log->ERROR("套接字 %d 向web发送消息 %s 错误,错误原因是 : %s",sockFd,(it->second).front().c_str(),strerror(errno));
 			}
+			simu_log->LOG("成功发送web socket消息");
 			(it->second).pop();
 		}
 	}
@@ -485,6 +486,7 @@ int send_message(int sockFd)
 				simu_log->ERROR("座席 %s (套接字 %d)发送消息错误",agent->m_agentID,sockFd);
 				return -1;
 			}
+			//agent->log()->LOG("发送消息");
 		}
 	}
 	return 0;
@@ -558,7 +560,7 @@ string find_agentID(int sockFd)
 int close_sock_and_erase(int sockFd)
 {
 	close(sockFd);
-	if(epoll_ctl(epollfd,EPOLL_CTL_DEL,sockFd,NULL) < 0)
+	if(epoll_ctl(epollfd, EPOLL_CTL_DEL, sockFd,NULL) < 0)
 	{
 		
 		simu_log->LOG("%s while deleting fd %d",strerror(errno),sockFd);
@@ -582,8 +584,6 @@ int close_sock_and_erase(int sockFd)
 		simu_log->ERROR("当试图在寻找sockFd为%d的agentID时失败",sockFd);
 		return -1;
 	}*/
-
-
 	center.socket_agentID_map.erase(sockFd);
 	
 	CAgent* agent = find_agent(sockFd);

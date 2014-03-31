@@ -1,0 +1,11 @@
+[14:48:52] LOG 座席初始化成功，agentID为0000106666665001，deviceID为0000206666665001，initialIP为192.168.2.191,initialPORT为14800
+[14:48:52] LOG 试图连接CTI服务器，socket为8
+[14:48:52] LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[14:48:52] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
+[14:48:52] LOG <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[14:48:52] LOG 离开sendMsgEx
+[14:48:52] LOG 将消息发送到队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[14:48:52] LOG 试图向socket 8发送Initial消息
+[14:48:52] LOG 成功发送消息1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>��d��z�, 长度为500
+[14:48:52] LOG 收到消息 <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
+[14:48:52] ERROR msgParse 错误

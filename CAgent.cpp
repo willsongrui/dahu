@@ -49,32 +49,42 @@ int CAgent::send_message()
 
 int CAgent::send_message(int sockFd)
 {
+
 	int type = find_sock_type(sockFd);
 	string msgToSend;
 	if(type == 0)
 	{
+		
 		while(m_initial_msgToSend.empty()==false)
 		{
+			char buff[500];
+			log()->LOG("试图向socket %d发送Initial消息", sockFd);
 			msgToSend = m_initial_msgToSend.front();
 			m_initial_msgToSend.pop();
-			if(send(sockFd, msgToSend.c_str(), sizeof(msgToSend), 0)<0)
+			strncpy(buff, msgToSend.c_str(), msgToSend.length());
+			int ret = send(sockFd, buff, sizeof(buff), 0);
+			if(ret < 0)
 			{
-				log()->ERROR("试图发送Initial msg时失败，msg为：%s，错误原因为：%s", msgToSend.c_str(), strerror(errno));
+				log()->ERROR("试图发送Initial msg时失败，msg为：%s，错误原因为：%s", buff, strerror(errno));
 				return -1;
 			}
+			log()->LOG("成功发送消息%s, 长度为%d", buff, ret);
 		}
 	}
 	else if(type == 1)
 	{
-		while(m_signIn_msgToSend.empty()==false)
+		
+		while(m_signIn_msgToSend.empty() == false)
 		{
+			log()->LOG("试图向socket %d发送Sign消息", sockFd);
 			msgToSend = m_signIn_msgToSend.front();
 			m_signIn_msgToSend.pop();
-			if(send(sockFd, msgToSend.c_str(), sizeof(msgToSend), 0)<0)
+			if(send(sockFd, msgToSend.c_str(), sizeof(msgToSend), 0) < 0)
 			{
 				log()->ERROR("试图发送Initial msg时失败，msg为：%s，错误原因为：%s", msgToSend.c_str(), strerror(errno));
 				return -1;
 			}
+			log()->LOG("成功发送消息%s", msgToSend.c_str());
 		}
 
 	}
@@ -83,6 +93,7 @@ int CAgent::send_message(int sockFd)
 		log()->ERROR("传入socket与当前座席的Initial和signIn都不匹配");
 		return -1;
 	}
+	return 0;
 }
 
 
@@ -107,7 +118,7 @@ int CAgent::sendMsgEx(string& msg,const char* strName)
 {
 	log()->LOG("进入sendMsgEx, msg = %s, strName = %s", msg.c_str(), strName);
 	int type = 1;
-	if(strcmp(strName, "initial")==0)
+	if(strcmp(strName, "Initial")==0)
 		type = 0;
 	char strTrace[] = "on";
 	char str[500];
@@ -1660,12 +1671,7 @@ CAgent::CAgent()
 		CAgent::eventTypeMap.insert(make_pair("OnSystemIdle", ACP_OnListened));
 		CAgent::eventTypeMap.insert(make_pair("OnQueueReport", ACP_OnQueueReport));
 		CAgent::eventTypeMap.insert(make_pair("OnSystemMessage", ACP_OnSystemMessage));
-
-		
 	}
-
-
-
 }
 
 int CAgent::initial()
@@ -1676,8 +1682,7 @@ int CAgent::initial()
         "<body type=\"request\" name=\"Initial\">"
         "<parameter vdcode=\"%s\"/>"
         "</body></acpMessage>", m_sessionID, m_vdcode.c_str());
-	
-	
+		
 	log()->LOG("座席发送Initial消息：%s",msg);
 	//setStatus(Try2Initial);
 	string msg_str = string(msg);
@@ -1687,7 +1692,7 @@ CLOG* CAgent::log()
 {
 	if(m_log == NULL)
 	{
-		string agentName = string(m_agentID);
+		string agentName = "record/" + string(m_agentID);
 		m_log = new CLOG(agentName);
 
 	}

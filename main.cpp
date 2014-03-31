@@ -84,16 +84,21 @@ int main()
 	
 	while(true)
 	{
-		while(center.socket_Not_In_Epoll.empty()!=0)
+		//simu_log->LOG("进入大循环");
+		while(!center.socket_Not_In_Epoll.empty())
 		{
 			memset(&ev, 0, sizeof(ev));
 			int sock = center.socket_Not_In_Epoll.front();
 			center.socket_Not_In_Epoll.pop();
 			ev.events = EPOLLIN|EPOLLOUT|EPOLLRDHUP;
 			ev.data.fd = sock;
-			if(epoll_ctl(epollfd, EPOLL_CTL_ADD, sock,&ev)<0)
+			if(epoll_ctl(epollfd, EPOLL_CTL_ADD, sock, &ev) < 0)
 			{
 				simu_log->ERROR("套接字 %d 加入EPOLL错误, 错误原因 %s ",sock, strerror(errno));
+			}
+			else
+			{
+				simu_log->LOG("将socket为%d的连接加入到EPOLL中", sock);
 			}
 		}
 
@@ -107,8 +112,22 @@ int main()
 		for(int n = 0; n < nfds; ++n)
 		{
 			ev = events[n];
-			if(ev.events & EPOLLIN)
+			if(ev.events & EPOLLERR)
 			{
+				simu_log->ERROR("套接字 %d 错误, 错误原因 %s ",ev.data.fd,strerror(errno));
+				close_sock_and_erase(ev.data.fd);
+					
+			}
+
+			else if(ev.events & EPOLLHUP)
+			{
+				simu_log->LOG("套接字 %d 对方关闭连接",ev.data.fd);
+				close_sock_and_erase(ev.data.fd);
+			}
+
+			else if(ev.events & EPOLLIN)
+			{
+				simu_log->LOG("socekt %d 可读");
 				if(ev.data.fd == listenWeb)
 				{
 					struct sockaddr_in addr;
@@ -136,9 +155,9 @@ int main()
 				}
 				else
 				{
-
+					simu_log->LOG("收到来自socket%d的消息", ev.data.fd);
 					char buf[2000];
-					int ret = recv(ev.data.fd,buf,sizeof(buf),0);
+					int ret = recv(ev.data.fd, buf, sizeof(buf),0);
 					if(ret == 0) 
 					{
 						simu_log->LOG("socket %d 关闭", ev.data.fd);
@@ -161,6 +180,7 @@ int main()
 			}
 			else if(ev.events & EPOLLOUT)
 			{
+				//simu_log->LOG("向socket %d发送消息");
 				send_message(ev.data.fd);
 			}
 			else if(ev.events & EPOLLRDHUP)
@@ -168,17 +188,8 @@ int main()
 				simu_log->LOG("套接字 %d 对方关闭连接",ev.data.fd);
 				close_sock_and_erase(ev.data.fd);
 			}
-			else if(ev.events & EPOLLHUP)
-			{
-				simu_log->LOG("套接字 %d 对方关闭连接",ev.data.fd);
-				close_sock_and_erase(ev.data.fd);
-			}
-			else if(ev.events & EPOLLERR)
-			{
-				simu_log->ERROR("套接字 %d 错误, 错误原因 %s ",ev.data.fd,strerror(errno));
-				close_sock_and_erase(ev.data.fd);
-					
-			}
+			
+			
 			
 		}
 	}
