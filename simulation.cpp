@@ -628,21 +628,22 @@ int close_sock_and_erase(int sockFd)
 
 int create_connection_to_web(int Port)
 {
-	int sockFd = socket(AF_INET,SOCK_STREAM,0);
+	simu_log->LOG("进入create_connection_to_web");
+	int sockFd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockFd < 0)
 	{
-		simu_log->ERROR("创建web套接字失败,失败原因: %s",strerror(errno));
+		simu_log->ERROR("创建web套接字失败,失败原因: %s", strerror(errno));
 		return -1;
 	}
-	int flags = fcntl(sockFd,F_GETFL);
+	int flags = fcntl(sockFd, F_GETFL);
 	if(flags < 0)
 	{
-		simu_log->ERROR("得到web套接字flag失败,失败原因: %s",strerror(errno));
+		simu_log->ERROR("得到web套接字flag失败,失败原因: %s", strerror(errno));
 		return -1;	
 	}
-	if(fcntl(sockFd,F_SETFL,flags|O_NONBLOCK) < 0)
+	if(fcntl(sockFd, F_SETFL, flags|O_NONBLOCK) < 0)
 	{
-		simu_log->ERROR("设置web套接字为非阻塞模式失败,失败原因: %s",strerror(errno));
+		simu_log->ERROR("设置web套接字为非阻塞模式失败,失败原因: %s", strerror(errno));
 		return -1;
 	}
 	struct sockaddr_in addr;
@@ -656,7 +657,7 @@ int create_connection_to_web(int Port)
 		return -1;
 	}
 	listen(sockFd,1000);
-	
+	simu_log->LOG("正在监听%d，等待web端连接");
 	return sockFd;
 	
 }

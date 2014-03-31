@@ -11,14 +11,12 @@
 #include <queue>
 #include "simulation.h"
 #include "simu_def.h"
+
 #define MAX_EVENTS 1000
 
 
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
-//map<int,string> socket_agentID_map;  //socket和agent的映射map
-//map<string,CAgent*> agentID_agent_map;
-//queue<int> socket_Not_In_Epoll;		 //还未加入到EPOLL中的socket
 CConf conf;
 CLOG* simu_log;						
 
@@ -49,7 +47,7 @@ int main()
 		printf("打开文件日志失败\n");
 		return -1;
 	}
-	if(load_config("simulation.conf")<0)
+	if(load_config("simulation.conf") < 0)
 	{
 		printf("打开配置文件错误\n");
 		return -1;
@@ -67,14 +65,14 @@ int main()
 	
 	//监听web服务器
 	int listenWeb = create_connection_to_web(conf.webPort);
+
 	if(listenWeb < 0)
 	{
-		simu_log->ERROR("IPC socket错误");
+		simu_log->ERROR("web socket错误");
 		return 0;
 	}
+
 	center.socket_Not_In_Epoll.push(listenWeb);
-
-
 
 	if(create_agents() < 0)
 	{
@@ -83,26 +81,28 @@ int main()
 	}
 	
 	struct epoll_event ev,events[MAX_EVENTS];
+	
 	while(true)
 	{
 		while(center.socket_Not_In_Epoll.empty()!=0)
 		{
-			memset(&ev,0,sizeof(ev));
+			memset(&ev, 0, sizeof(ev));
 			int sock = center.socket_Not_In_Epoll.front();
 			center.socket_Not_In_Epoll.pop();
 			ev.events = EPOLLIN|EPOLLOUT|EPOLLRDHUP;
 			ev.data.fd = sock;
-			if(epoll_ctl(epollfd,EPOLL_CTL_ADD,sock,&ev)<0)
+			if(epoll_ctl(epollfd, EPOLL_CTL_ADD, sock,&ev)<0)
 			{
 				simu_log->ERROR("套接字 %d 加入EPOLL错误, 错误原因 %s ",sock, strerror(errno));
 			}
 		}
 
-		int nfds = epoll_wait(epollfd,events,MAX_EVENTS,10);
+		int nfds = epoll_wait(epollfd, events, MAX_EVENTS,10);
 		if(nfds == -1)
 		{
-			simu_log->ERROR("epoll_wait 错误, 错误原因 %s ",strerror(errno));
-			return 0;
+			simu_log->ERROR("epoll_wait 错误, 错误原因 %s ", strerror(errno));
+
+			return -1;
 		}
 		for(int n = 0; n < nfds; ++n)
 		{
@@ -151,7 +151,7 @@ int main()
 					else
 					{
 						string msg = string(buf);
-						while((ret = recv(ev.data.fd,buf,sizeof(buf),0)) > 0)
+						while((ret = recv(ev.data.fd, buf, sizeof(buf),0)) > 0)
 						{
 							msg = msg + string(buf);
 						}
