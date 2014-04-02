@@ -55,16 +55,16 @@ int CAgent::send_message(int sockFd)
 	if(type == 0)
 	{
 		
-		while(m_initial_msgToSend.empty()==false)
+		while(m_initial_msgToSend.empty() == false)
 		{
 			char buff[500];
 			log()->LOG("试图向socket %d发送Initial消息", sockFd);
 			msgToSend = m_initial_msgToSend.front();
 			m_initial_msgToSend.pop();
 			sprintf(buff, "%s", msgToSend.c_str());
-			
+			//buff[msgToSend.length()]		
 
-			int ret = send(sockFd, buff, sizeof(buff), 0);
+			int ret = send(sockFd, buff, msgToSend.length()+1, 0);
 			if(ret < 0)
 			{
 				log()->ERROR("试图发送Initial msg时失败，msg为：%s，错误原因为：%s", buff, strerror(errno));
@@ -81,9 +81,14 @@ int CAgent::send_message(int sockFd)
 			log()->LOG("试图向socket %d发送Sign消息", sockFd);
 			msgToSend = m_signIn_msgToSend.front();
 			m_signIn_msgToSend.pop();
-			if(send(sockFd, msgToSend.c_str(), sizeof(msgToSend), 0) < 0)
+			
+			char buff[500];
+			
+			sprintf(buff, "%s", msgToSend.c_str());
+			int ret = send(sockFd, buff, msgToSend.length()+1, 0);
+			if(ret < 0)
 			{
-				log()->ERROR("试图发送Initial msg时失败，msg为：%s，错误原因为：%s", msgToSend.c_str(), strerror(errno));
+				log()->ERROR("试图发送Initial msg时失败，msg为：%s，错误原因为：%s", buff, strerror(errno));
 				return -1;
 			}
 			log()->LOG("成功发送消息%s", msgToSend.c_str());
@@ -895,7 +900,8 @@ int CAgent::msgParse(string& msg)
 {
 	log()->LOG("msgParse处理消息%s", msg.c_str());
 	xml_document<> doc;
-	char str_msg[200];
+	char str_msg[500];
+	//sprintf(str_msg, "%s", msg.c_str());
 	strcpy(str_msg, msg.c_str());
 	try
 	{
@@ -1730,6 +1736,15 @@ int CAgent::signIn()
 	//sockState = 0;
 	
 	
+	//m_sessionID[11] = 2;
+	//m_sessionID[12] = 0;
+	char vccID[6];
+	snprintf(vccID, 6, "%s", m_vccID);
+	char deviceID[16];
+	snprintf(deviceID, 16, "%s", m_deviceID);
+	sprintf(m_sessionID, "%s-%s", m_vccID, m_deviceID);
+	m_sessionID[11] = '0';
+	m_sessionID[12] = '2';
 	char msg[300];
 	sprintf(msg, "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"

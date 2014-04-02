@@ -38,6 +38,7 @@ void agentReportAlarm()
 int main()
 {
 	//系统的日志文件
+	//unlink("simulation.log");
 	try
 	{
 		simu_log = new CLOG("simulation.log");
@@ -189,9 +190,6 @@ int main()
 				close_sock_and_erase(ev.data.fd);
 			}
 			
-			
-			
 		}
 	}
-
 }

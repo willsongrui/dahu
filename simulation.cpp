@@ -105,7 +105,7 @@ int create_agents()
 		agent->m_ready = conf.ready;
 		agent->m_is_sign_in = false;
 		strcpy(agent->m_passwd, conf.passwd.c_str());
-
+		strcpy(agent->m_vccID, conf.vccID.c_str());
 
 		agent->log()->LOG("座席初始化成功，agentID为%s，deviceID为%s，initialIP为%s,initialPORT为%d", agent->m_agentID, agent->m_deviceID,agent->m_initial_IP.c_str(), agent->m_initial_Port);
 		int agentfd = create_connection_to_cti(agent->m_initial_IP, agent->m_initial_Port, agent);

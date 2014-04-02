@@ -1,12 +1,15 @@
+#include <unistd.h>
 #include "log.h"
 using namespace std;
 
 CLOG::CLOG(string logFile)
 {
+	//printf("进入CLOG的构造函数");
+	unlink(logFile.c_str());
 	int fs = open(logFile.c_str(),O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR);
 	if(fs < 0)
 	{
-		printf("打开日志文件%s失败,错误原因: %s\n",logFile.c_str(),strerror(errno));
+		printf("打开日志文件%s失败,错误原因: %s\n", logFile.c_str(), strerror(errno));
 		logFile = -1;
 		throw(-1);
 	}
@@ -23,7 +26,7 @@ void CLOG::ERROR(const char* fmt,...)
 {
 	va_list arg;
 	va_start(arg,fmt);
-	write_to_log("ERROR",fmt,arg);
+	write_to_log("ERROR", fmt, arg);
 	va_end(arg);
 	
 }
