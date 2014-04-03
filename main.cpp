@@ -23,7 +23,10 @@ CLOG* simu_log;
 using namespace std;
 void agentReportAlarm()
 {
-
+	if(NULL != simu_log)
+	{
+		simu_log->LOG("进入alarm中");
+	}
 	map<string, CAgent*>::iterator iter;
 	for(iter = center.agentID_agent_map.begin(); iter != center.agentID_agent_map.end(); iter++)
 	{
@@ -54,13 +57,14 @@ int main()
 		return -1;
 	}
 	simu_log->LOG("读取配置文件成功");
+	//simu_log->ERROR("读取配置文件成功");
 
 	epollfd = epoll_create(MAX_EVENTS);
 	
 	if(epollfd < 0)
 	{
 		simu_log->ERROR("EPOLL 错误");
-		return -1;
+		return -1; 
 	}
 	simu_log->LOG("EPOLL加载成功");
 	

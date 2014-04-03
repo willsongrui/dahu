@@ -33,6 +33,7 @@ int create_sock_non_blocking(string ip, int port)
 }*/
 int create_connection_to_cti(string ip, int port, CAgent* agent)
 {
+	agent->log()->LOG("进入%s中", "create_connection_to_cti");
 	if((agent==NULL)||(agent->log()==NULL))
 	{
 		simu_log->ERROR("create_connectino_to_cti时传入指针为空");
@@ -49,7 +50,7 @@ int create_connection_to_cti(string ip, int port, CAgent* agent)
 		agent->log()->ERROR("create_connection_to_cti时设置非阻塞模式失败");
 		return -1;
 	}
-
+	agent->log()->LOG("创建cti非阻塞套接字%d成功", sockFd);
 	struct sockaddr_in addr;
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
@@ -99,15 +100,17 @@ int create_agents()
 		CAgent* agent = new CAgent();
 		agent->m_initial_IP = conf.ctiIP;
 		agent->m_initial_Port = conf.ctiPort;
-		strcpy(agent->m_agentID, add_int_to_string(conf.agentID, i).c_str());
+		snprintf(agent->m_agentID, sizeof(agent->m_agentID), "%s", add_int_to_string(conf.agentID, i).c_str());
+		
 		//agent->m_agentID = add_int_to_string(conf.agentID, i);
-		strcpy(agent->m_deviceID, add_int_to_string(conf.deviceID, i).c_str());
+		snprintf(agent->m_deviceID, sizeof(agent->m_deviceID), "%s", add_int_to_string(conf.deviceID, i).c_str());
 		agent->m_ready = conf.ready;
 		agent->m_is_sign_in = false;
-		strcpy(agent->m_passwd, conf.passwd.c_str());
-		strcpy(agent->m_vccID, conf.vccID.c_str());
-
+		snprintf(agent->m_passwd, sizeof(agent->m_passwd), "%s", conf.passwd.c_str());
+		snprintf(agent->m_vccID, sizeof(agent->m_vccID), "%s", conf.vccID.c_str());
+		snprintf(agent->m_taskID, sizeof(m_taskID), "%s", conf.taskID.c_str());
 		agent->log()->LOG("座席初始化成功，agentID为%s，deviceID为%s，initialIP为%s,initialPORT为%d", agent->m_agentID, agent->m_deviceID,agent->m_initial_IP.c_str(), agent->m_initial_Port);
+		
 		int agentfd = create_connection_to_cti(agent->m_initial_IP, agent->m_initial_Port, agent);
 		if(agentfd < 0)
 		{
@@ -170,6 +173,7 @@ int load_config(const string& confFile)
 	xml_node<>* ready = NULL;
 	xml_node<>* passwd = NULL;
 	xml_node<>* deviceID = NULL;
+	xml_node<>* taskID = NULL;
 	root = doc.first_node();
 	if(!root)
 	{
@@ -188,7 +192,8 @@ int load_config(const string& confFile)
 	ready = root->first_node("ready");	
 	passwd = root->first_node("passwd");
 	deviceID = root->first_node("deviceID");
-	if(!(root && passwd && ready && webPort &&deviceID && ctiIP && ctiPort && vccID && agentNum && agentID))
+	taskID = root->first_node("taskID");
+	if(!(root && passwd && ready && webPort &&deviceID && ctiIP && ctiPort && vccID && taskID && agentNum && agentID))
 	{
 		simu_log->ERROR("配置文件节点不全");
 		return -1;	
@@ -204,6 +209,7 @@ int load_config(const string& confFile)
 	conf.ready = atoi(ready->value());
 	conf.passwd = string(passwd->value());
 	conf.deviceID = string(deviceID->value());
+	conf.taskID = string(taskID->value());
 
 	simu_log->LOG("配置文件读取成功");
 	
@@ -321,6 +327,7 @@ int all_report(int sockFd)
 
 int handle_web_message(int sockFd, string& message)
 {
+
 	simu_log->LOG("收到服务器套接字 %d 的消息，内容为%s",sockFd,message.c_str());
 	if(message == "ALL_INITIAL")
 	{
@@ -386,7 +393,7 @@ void strip_vec(vector<string>& vec)
 
 void msgSplit(vector<string>& vec, const string& message, string endFlag)
 {
-	
+	simu_log->LOG("进入%s中", "msgSplit");	
 	int len = endFlag.length();
 	int pos = -1;
 	int pre = 0;
@@ -408,7 +415,7 @@ void msgSplit(vector<string>& vec, const string& message, string endFlag)
 }
 int handle_message(int sockFd, string& message)
 {
-
+	simu_log->LOG("进入%s中", "handle_message");
 	int n;
 	int ret = 0;
 	vector<string> msg;
@@ -428,6 +435,7 @@ int handle_message(int sockFd, string& message)
 	}
 	else
 	{
+
 		CAgent* agent = find_agent(sockFd);
 		if(!agent)
 		{
@@ -445,13 +453,23 @@ int handle_message(int sockFd, string& message)
 			for(int i=0; i < msg.size()-1; i++)
 			{
 				n = agent->handle_message(msg[i], sockFd);
+				agent->log()->LOG("从handle_message函数体返回%d", n);
 				if(n < 0)
 				{
 					simu_log -> ERROR("处理agent_message时失败:%s",msg[i].c_str());
 					ret = -1;
 				}
+
 			}
 		}
+	}
+	if(ret == 0)
+	{
+		simu_log->LOG("成功handle_message");
+	}
+	else
+	{
+		simu_log->ERROR("handle_message失败");
 	}
 	return ret;
 }
@@ -498,6 +516,7 @@ int send_message(int sockFd)
 
 int setnonblocking(int sockFd)
 {
+	simu_log->LOG("进入%s中", "setnonblocking");
 	if(sockFd <= 0)
 	{
 		simu_log->ERROR("待设置为nonblocking的句柄为负");
@@ -514,6 +533,7 @@ int setnonblocking(int sockFd)
 		simu_log->ERROR("error set flag to O_NONBLOCK for %d :%s",sockFd,strerror(errno));
 		return -1;
 	}
+	simu_log->LOG("离开%s中", "setnonblocking");
 	return 0; 
 }
 /*

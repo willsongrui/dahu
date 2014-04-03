@@ -1,19 +1,35 @@
-[19:22:50] LOG 配置文件读取成功
-[19:22:50] LOG 读取配置文件成功
-[19:22:50] LOG EPOLL加载成功
-[19:22:50] LOG 进入create_connection_to_web
-[19:22:50] LOG 正在监听16，等待web端连接
-[19:22:50] LOG 0000106666665001
-[19:22:50] LOG 0000206666665001
-[19:22:50] LOG 将initial socket 8 加入到socket_agentID_map中
-[19:22:50] LOG 将socket为6的连接加入到EPOLL中
-[19:22:50] LOG 将socket为8的连接加入到EPOLL中
-[19:22:50] LOG socekt 1000 可读
-[19:22:50] LOG 收到来自socket8的消息
-[19:22:50] LOG 将socket为9的连接加入到EPOLL中
-[19:22:51] LOG socekt 1000 可读
-[19:22:51] LOG 收到来自socket9的消息
-[19:22:51] LOG socekt 1000 可读
-[19:22:51] LOG 收到来自socket9的消息
-[19:22:51] LOG socekt 1000 可读
-[19:22:51] LOG 收到来自socket9的消息
+[11:42:19] LOG 配置文件读取成功
+[11:42:19] LOG 读取配置文件成功
+[11:42:19] LOG EPOLL加载成功
+[11:42:19] LOG 进入create_connection_to_web
+[11:42:19] LOG 正在监听16，等待web端连接
+[11:42:19] LOG 0000106666665001
+[11:42:19] LOG 0000206666665001
+[11:42:19] LOG 进入setnonblocking中
+[11:42:19] LOG 离开setnonblocking中
+[11:42:19] LOG 将initial socket 8 加入到socket_agentID_map中
+[11:42:19] LOG 将socket为6的连接加入到EPOLL中
+[11:42:19] LOG 将socket为8的连接加入到EPOLL中
+[11:42:19] LOG socekt 1000 可读
+[11:42:19] LOG 收到来自socket8的消息
+[11:42:19] LOG 进入handle_message中
+[11:42:19] LOG 进入msgSplit中
+[11:42:19] LOG 进入setnonblocking中
+[11:42:19] LOG 离开setnonblocking中
+[11:42:19] LOG 成功handle_message
+[11:42:19] LOG 将socket为9的连接加入到EPOLL中
+[11:42:19] LOG socekt 1000 可读
+[11:42:19] LOG 收到来自socket9的消息
+[11:42:19] LOG 进入handle_message中
+[11:42:19] LOG 进入msgSplit中
+[11:42:19] LOG 成功handle_message
+[11:42:19] LOG socekt 1000 可读
+[11:42:19] LOG 收到来自socket9的消息
+[11:42:19] LOG 进入handle_message中
+[11:42:19] LOG 进入msgSplit中
+[11:42:19] LOG 成功handle_message
+[11:42:19] LOG socekt 1000 可读
+[11:42:19] LOG 收到来自socket9的消息
+[11:42:19] LOG 进入handle_message中
+[11:42:19] LOG 进入msgSplit中
+[11:42:19] LOG 成功handle_message

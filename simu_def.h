@@ -401,6 +401,7 @@ public:
 	std::string vccID;
 	int ready;
 	std::string passwd;
+	std::string taskID;
 };
 
 typedef struct
@@ -451,7 +452,7 @@ public:
 	int BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body);
 	int msgParse(std::string& msg);
 	int find_sock_type(int);
-
+	
 
 
 
@@ -479,6 +480,7 @@ public:
 	bool m_is_sign_in;
 	std::string m_initial_IP;
 	int m_initial_Port;
+	char m_taskID[20];
 
 	ACPEvent_t m_acpEvent;
 	static std::set<std::string> allowed_cmd;

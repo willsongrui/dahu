@@ -42,7 +42,7 @@ void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 	
 	char buffer[500];
 	
-	sprintf(buffer,"[%s] %s %s\n",getTime(),type,temp);
+	snprintf(buffer, sizeof(buffer), "[%s] %s %s\n",getTime(),type,temp);
 	printf("%s",buffer);
 	if(write(logFd, buffer, strlen(buffer)) <0)
 	{

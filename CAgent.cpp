@@ -61,7 +61,7 @@ int CAgent::send_message(int sockFd)
 			log()->LOG("试图向socket %d发送Initial消息", sockFd);
 			msgToSend = m_initial_msgToSend.front();
 			m_initial_msgToSend.pop();
-			sprintf(buff, "%s", msgToSend.c_str());
+			snprintf(buff, sizeof(buff), "%s", msgToSend.c_str());
 			//buff[msgToSend.length()]		
 
 			int ret = send(sockFd, buff, msgToSend.length()+1, 0);
@@ -84,7 +84,7 @@ int CAgent::send_message(int sockFd)
 			
 			char buff[500];
 			
-			sprintf(buff, "%s", msgToSend.c_str());
+			snprintf(buff, sizeof(buff), "%s", msgToSend.c_str());
 			int ret = send(sockFd, buff, msgToSend.length()+1, 0);
 			if(ret < 0)
 			{
@@ -108,7 +108,7 @@ int CAgent::send_message(int sockFd)
 string CAgent::getHeader()
 {
 	char header[100];
-	sprintf(header,"<header><sessionID>%s</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>%s</timeStamp></header>",
+	snprintf(header, sizeof(header), "<header><sessionID>%s</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>%s</timeStamp></header>",
 		m_sessionID, m_timeStamp);
 	return string(header);
 }
@@ -119,6 +119,7 @@ int CAgent::sendMsg(string& str, int type)
 		m_signIn_msgToSend.push(str);
 	else
 		m_initial_msgToSend.push(str);
+	log()->LOG("成功将消息发送到队列中：%s",str.c_str());
 	return 0;
 }
 int CAgent::sendMsgEx(string& msg,const char* strName)
@@ -134,12 +135,14 @@ int CAgent::sendMsgEx(string& msg,const char* strName)
 	snprintf(str, 500, "%s %s %s %s","1000", strTrace, strName, msg.c_str());
 	string temp = string(str);
 	log()->LOG("离开sendMsgEx");
-	return sendMsg(temp, type);
+	int ret = sendMsg(temp, type);
+	log()->LOG("从sendMsg中返回%d", ret);
+	return ret;
 }
 int CAgent::sendHeartBeat()
 {
 	char msg[100];
-    sprintf(msg, "1000 off heartBeat <acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "1000 off heartBeat <acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"response\" name=\"heartBeat\"/>"
         "</acpMessage>", m_sessionID);  
@@ -151,7 +154,7 @@ int CAgent::agentReport()
 {
 	char msg[300];
     
-    sprintf(msg,"<acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header></header>"
         "<body type=\"request\" name=\"AgentReport\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
@@ -221,8 +224,11 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 
 	int type = find_sock_type(sockFd);
 
+	//log()->LOG("ALIVE0");
 	log()->LOG("收到消息 %s",msg.c_str());
+
 	size_t pos = msg.find("<acpMessage");
+	log()->ERROR("%d", pos);
 	if(pos == string::npos)
 	{
 		log()->ERROR("座席收到的消息格式错误(没有<acp),具体消息为 %s",msg.c_str());
@@ -246,14 +252,19 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 			*/
 		}
 	}
+	//log()->ERROR("ALIVE2");
 	string xml_msg = msg.substr(pos);
+	//log()->LOG(xml_msg.c_str());
 	if(msgParse(xml_msg)<0)
 	{
 		log()->ERROR("msgParse 错误");
 		return -1;
 	}
-	return handle_msg();
+	int ret = handle_msg();
+	log()->LOG("handle_message从handle_msg中返回%d", ret);
+	return ret;
 }
+
 int CAgent::find_sock_type(int sockFd)
 {
 	if(sockFd == m_initial_sock)
@@ -267,6 +278,7 @@ int CAgent::find_sock_type(int sockFd)
 //根据成员变量 m_acpEvent
 int CAgent::handle_msg()
 {
+	log()->LOG("进入%s", "handle_msg");
 	ACPEvent_t* msg = (ACPEvent_t*)&m_acpEvent;
 	if(msg == NULL)
 		return -1;
@@ -296,11 +308,15 @@ int CAgent::handle_msg()
 
 				//close initial sock???
 				close(m_initial_sock);
-				return signIn();
+				int ret = signIn();
+				//int ret = 0;
+				//log()->LOG("handle_msg从signIn返回%d", ret); 
+				//printf("handle_msg从signIn返回%d", ret); 
+				return ret;
 			}
 			else
 			{
-				log()->ERROR("Initial失败,错误码是%d,描述为",msg->event.acpConfirmation.u.initialConf.code,msg->event.acpConfirmation.u.initialConf.desc);
+				log()->ERROR("Initial失败,错误码是%d,描述为%s", msg->event.acpConfirmation.u.initialConf.code, msg->event.acpConfirmation.u.initialConf.desc);
 				m_lMsgReceived = MSG_FAILURE;
 				return -1;
 			}
@@ -543,6 +559,7 @@ int CAgent::handle_msg()
 		}
 		break;
 	}
+	//log()->LOG("离开%s", "handle_msg");
 	return 0;
 
 }
@@ -585,13 +602,13 @@ int CAgent::BuildAgentInfo(Agent_t &agentInfo,xml_node<>* body)
     	//_delete vccID, agentID, deviceID, phoneStatus, agentStatus;
     	return -1;
     }
-	strcpy(agentInfo.vccID, vccID->value());
-	strcpy(agentInfo.agentID, agentID->value());
-	strcpy(agentInfo.deviceID, deviceID->value());
+	snprintf(agentInfo.vccID, sizeof(agentInfo.vccID), "%s", vccID->value());
+	snprintf(agentInfo.agentID, sizeof(agentInfo.agentID), "%s", agentID->value());
+	snprintf(agentInfo.deviceID, sizeof(agentInfo.deviceID), "%s", deviceID->value());
 	
-	strcpy(m_vccID, vccID->value());
-	strcpy(m_agentID, agentID->value());
-	strcpy(m_deviceID, deviceID->value());
+	snprintf(m_vccID, sizeof(m_vccID), "%s", vccID->value());
+	snprintf(m_agentID, sizeof(m_agentID), "%s", agentID->value());
+	snprintf(m_deviceID, sizeof(m_deviceID), "%s", deviceID->value());
 	m_agentStatus = (AgentState_t)atoi(agentStatus->value());
 	m_phoneStatus = (PhoneState_t)atoi(phoneStatus->value());;
 	
@@ -625,13 +642,14 @@ int CAgent::BuildCauseInfo(Cause_t &causeInfo,xml_node<>* body)
 	if(strcmp(" ", code->value())==0)
 	{
 		causeInfo.code = atoi(code->value());
-		strcpy(causeInfo.desc, desc->value());
+		snprintf(causeInfo.desc, sizeof(causeInfo.desc), "%s", desc->value());
 
 	}
 	else
 	{
 		causeInfo.code = 0;
-		strcpy(causeInfo.desc, "");
+		memset(causeInfo.desc, 0, sizeof(causeInfo.desc));
+		//snprintf(causeInfo.desc, sizeof(causeInfo.desc),"");
 	}
 	if(causeInfo.code!=0)
 	{
@@ -663,12 +681,12 @@ int CAgent::BuildIntialConf(ACPInitialConfEvent_t &initialConf,xml_node<>* body)
 
     }
 	initialConf.code = atoi(code->value());
-	strcpy(initialConf.desc, desc->value());
-	strcpy(initialConf.ip, ip->value());
+	snprintf(initialConf.desc, sizeof(initialConf.desc), "%s", desc->value());
+	snprintf(initialConf.ip, sizeof(initialConf.ip), "%s", ip->value());
 	initialConf.port = atol(port->value());
 	
 	m_signIn_IP = string(ip->value());
-	//strcpy(m_signIn_IP, ip->value());
+	
 	m_signIn_Port = atoi(port->value());
 
 	//_delete code,desc,ip,port,parameter;
@@ -695,35 +713,37 @@ int CAgent::BuildCallinfo(Callinfo_t &callInfo, xml_node<>* body)
 	xml_attribute<>* calledDevice = HCallinfo->first_attribute("calledDevice");
 	if(calledDevice!=NULL)
 	{
-		strcpy(callInfo.calledDevice,calledDevice->value());
-		strcpy(m_calledDevice, callInfo.calledDevice);
+		snprintf(callInfo.calledDevice, sizeof(callInfo.calledDevice), "%s", calledDevice->value());
+		snprintf(m_calledDevice, sizeof(m_calledDevice), "%s", callInfo.calledDevice);
 	}
 
 	xml_attribute<>* origCalledDevice = HCallinfo->first_attribute("origCalledDevice");
 	if(origCalledDevice!=NULL)
 	{
-		strcpy(callInfo.orgCalledDevice, origCalledDevice->value());
-		strcpy(m_orgCalledDevice, callInfo.orgCalledDevice);
+		snprintf(callInfo.orgCalledDevice, sizeof(callInfo.orgCalledDevice), "%s", origCalledDevice->value());
+		snprintf(m_orgCalledDevice, sizeof(m_orgCalledDevice), "%s", callInfo.orgCalledDevice);
 	}
 
 
 	xml_attribute<>* CallingDevice = HCallinfo->first_attribute("CallingDevice");
 	if(CallingDevice!=NULL)
 	{
-		strcpy(callInfo.callingDevice,CallingDevice->value());
-		strcpy(m_callingDevice, callInfo.callingDevice);
+		snprintf(callInfo.callingDevice, sizeof(callInfo.callingDevice), "%s", CallingDevice->value());
+		snprintf(m_callingDevice, sizeof(m_callingDevice), "%s", callInfo.callingDevice);
 	}
 
 	xml_attribute<>* orgCallingDevice = HCallinfo->first_attribute("origCallingDevice");
 	if(orgCallingDevice!=NULL)
 	{
-		strcpy(callInfo.orgCallingDevice,orgCallingDevice->value());
-		strcpy(m_orgCallingDevice, callInfo.orgCallingDevice);
+		snprintf(callInfo.orgCallingDevice, sizeof(callInfo.orgCallingDevice), "%s", orgCallingDevice->value());
+		snprintf(m_orgCallingDevice, sizeof(m_orgCallingDevice), "%s", callInfo.orgCallingDevice);
 	}
 
 	xml_attribute<>* callData = HCallinfo->first_attribute("callData");
 	if(callData!=NULL)
-		strcpy(callInfo.callData, callData->value());
+	{
+		snprintf(callInfo.callData, sizeof(callInfo.callData), "%s", callData->value());
+	}
 
 	xml_attribute<>* count = HCallinfo->first_attribute("count");
 	if(count!=NULL)
@@ -731,14 +751,14 @@ int CAgent::BuildCallinfo(Callinfo_t &callInfo, xml_node<>* body)
 	/*
 	if(callInfo.count>0)
 		callInfo.device = new Device_t[count];
-	strcpy(callInfo.device[0].deviceID,agentInfo.deviceID);
+	//strcpy(callInfo.device[0].deviceID,agentInfo.deviceID);
 	callInfo.device[0].legID = 6;
 	callInfo.device[0].phoneStatus = agentInfo.phoneStatus;
 	
 	for (int i=1; i<count; ++i)
 	{
 		TXMLHandle hDevice = sXmlGetChild(HCallinfo, i-1);
-		strcpy(callInfo.device[i].deviceID,sXmlGetAttrValue(hDevice, "deviceID"));
+		//strcpy(callInfo.device[i].deviceID,sXmlGetAttrValue(hDevice, "deviceID"));
 		callInfo.device[i].legID = atoi(sXmlGetAttrValue(hDevice, "legID"));
 		callInfo.device[i].phoneStatus = (PhoneState_t)atoi(sXmlGetAttrValue(hDevice, "phoneStatus"));
 	}*/
@@ -757,7 +777,7 @@ int CAgent::BuildGeneralEventReport(ACPEventReportEvent_t &generalEventReport,xm
    TXMLHandle hParameter  = xmlGetElememt(body, "parameter");
     const char* code = sXmlGetAttrValue(hParameter, "code");
 	generalEventReport.cause.code = atoi(code);
-	strcpy(generalEventReport.cause.desc,sXmlGetAttrValue(hParameter, "desc"));
+	//strcpy(generalEventReport.cause.desc,sXmlGetAttrValue(hParameter, "desc"));
 	generalEventReport.agent.agentStatus = (AgentState_t)atoi(sXmlGetAttrValue(hParameter, "agentStatus"));
 	generalEventReport.agent.phoneStatus = (PhoneState_t)atoi(sXmlGetAttrValue(hParameter, "phoneStatus"));
 	generalEventReport.agent.master = atoi(sXmlGetAttrValue(hParameter, "master"));
@@ -779,7 +799,7 @@ int CAgent::BuildAnswerRequestEventReport(ACPEvent_t &msg,xml_node<>* body)
     xml_node<>* hAlertingDevice = body->first_node("alertingDevice");
 	if(hAlertingDevice!=NULL)
 	{
-		strcpy(msg.event.acpEventReport.u.answerRequestEventReport.alertingDevice,hAlertingDevice->value());
+		snprintf(msg.event.acpEventReport.u.answerRequestEventReport.alertingDevice, sizeof(msg.event.acpEventReport.u.answerRequestEventReport.alertingDevice), "%s", hAlertingDevice->value());
 	}
 	int CallinfoRet = BuildCallinfo(msg.event.acpEventReport.u.answerRequestEventReport.callInfo,body);	
 	if(ret < 0 || CallinfoRet < 0)
@@ -800,8 +820,8 @@ int CAgent::BuildHangupCallInfo(ACPHangupCallEvent_t &hangupCallEventReport,xml_
     xml_node<>* hCallInfo  = body->first_node("callInfo");
 	if(hCallInfo!=NULL)
 	{
-		strcpy(hangupCallEventReport.callingNo, hCallInfo->value());
-		strcpy(hangupCallEventReport.calledNo, hCallInfo->value());
+		snprintf(hangupCallEventReport.callingNo, sizeof(hangupCallEventReport.callingNo), "%s", hCallInfo->value());
+		
 	}
 	if(agentRet<0 || causeRet < 0)
 	{
@@ -830,7 +850,7 @@ int CAgent::BuildReleaseEventReport(ACPEvent_t &msg,xml_node<>* body)
 
 	if(hRelease)
 	{
-		strcpy(msg.event.acpEventReport.u.releaseEventReport.releaseDevice,hRelease->value());
+		snprintf(msg.event.acpEventReport.u.releaseEventReport.releaseDevice, sizeof(msg.event.acpEventReport.u.releaseEventReport.releaseDevice), "%s", hRelease->value());
 		releaseLegID = hRelease->first_attribute("legID");
 		if(releaseLegID)
 			msg.event.acpEventReport.u.releaseEventReport.releaseLegID = atoi(releaseLegID->value());
@@ -854,7 +874,7 @@ int CAgent::BuildRecordInfo(ACPRecordInfoEvent_t &recordInfoEventReport, xml_nod
 	{
 		const char* fileName = sXmlGetValue(hRecordInfo);
 		if(fileName)
-			strcpy(recordInfoEventReport.fileName,fileName);
+			//strcpy(recordInfoEventReport.fileName,fileName);
 	}*/
 	if(agentInfo<0 || causeInfo <0)
 	{
@@ -901,8 +921,8 @@ int CAgent::msgParse(string& msg)
 	log()->LOG("msgParse处理消息%s", msg.c_str());
 	xml_document<> doc;
 	char str_msg[500];
-	//sprintf(str_msg, "%s", msg.c_str());
-	strcpy(str_msg, msg.c_str());
+	snprintf(str_msg, sizeof(str_msg), "%s", msg.c_str());
+	
 	try
 	{
 		doc.parse<0>(str_msg);
@@ -950,8 +970,8 @@ int CAgent::msgParse(string& msg)
 			{
 				log()->LOG("成功解析timeStamp, sessonID, type, name");
 				
-				strncpy(m_acpEvent.eventHeader.sessionID, sessionID->value(), sizeof(sessionID->value()));
-				strcpy(m_sessionID, sessionID->value());
+				snprintf(m_acpEvent.eventHeader.sessionID, sizeof(sessionID->value()), "%s", sessionID->value());
+				snprintf(m_sessionID, sizeof(m_sessionID), "%s", sessionID->value());
 				
 				if(strcmp(type->value(), "request")==0)
 				{
@@ -1010,7 +1030,7 @@ int CAgent::msgParse(string& msg)
 								m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.idleStatus = atoi(idleStatus->value());
 								m_idleStatus = atoi(idleStatus->value());
 							}
-							//strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.groupID,sXmlGetAttrValue(hAgentParam,"locked"));
+							////strcpy(msg->event.acpConfirmation.u.signOutcConf.agentParam.groupID,sXmlGetAttrValue(hAgentParam,"locked"));
 							xml_attribute<>* agentType = hAgentParam->first_attribute("agentType");
 							if(agentType)
 							{
@@ -1037,9 +1057,14 @@ int CAgent::msgParse(string& msg)
 							}
 							xml_attribute<>* ctiEvent = hAgentParam->first_attribute("ctiEvent");
 							if(ctiEvent)
-								strcpy(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,ctiEvent->value());
+							{
+								snprintf(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent, sizeof(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent), "%s", ctiEvent->value());
+							}
 							else
-								strcpy(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent,"");
+							{
+								memset(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent, 0, sizeof(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent));
+								//snprintf(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent, sizeof(m_acpEvent.event.acpConfirmation.u.signOutcConf.agentParam.ctiEvent), "");
+							}
 							//_delete idleStatus, agentType, locked, allTimeRecord, deviceType, ctiEvent;
 						}
 						break;
@@ -1123,7 +1148,7 @@ int CAgent::msgParse(string& msg)
 						{
 							const char* callData = sXmlGetValue(hCallData);
 							if(callData)
-								strcpy(msg.event.acpConfirmation.u.getCallData.callData,callData);
+								//strcpy(msg.event.acpConfirmation.u.getCallData.callData,callData);
 						}*/
 						break;
 					case ACP_OnRequestRelease:
@@ -1565,6 +1590,7 @@ CAgent::CAgent()
 	m_ready = 0;
 	m_is_sign_in = false;
 	
+	
 
 	memset(m_deviceID, 0, sizeof(m_deviceID));
 	memset(m_agentID, 0, sizeof(m_agentID));
@@ -1710,7 +1736,7 @@ CAgent::CAgent()
 int CAgent::initial()
 {
 	char msg[200];
-	sprintf(msg,"<acpMessage ver=\"2.0.0\">"
+	snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"Initial\">"
         "<parameter vdcode=\"%s\"/>"
@@ -1739,24 +1765,26 @@ int CAgent::signIn()
 	//m_sessionID[11] = 2;
 	//m_sessionID[12] = 0;
 	char vccID[6];
-	snprintf(vccID, 6, "%s", m_vccID);
+	snprintf(vccID, sizeof(vccID), "%s", m_vccID);
 	char deviceID[16];
-	snprintf(deviceID, 16, "%s", m_deviceID);
-	sprintf(m_sessionID, "%s-%s", m_vccID, m_deviceID);
+	snprintf(deviceID, sizeof(deviceID), "%s", m_deviceID);
+	snprintf(m_sessionID, sizeof(m_sessionID), "%s-%s", m_vccID, m_deviceID);
 	m_sessionID[11] = '0';
 	m_sessionID[12] = '2';
-	char msg[300];
-	sprintf(msg, "<acpMessage ver=\"2.0.0\">"
-        "<header><sessionID>%s</sessionID></header>"
+	char msg[1000];
+	snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
+        "<header><sessionID>%s</sessionID><serialID></serialID><timeStamp></timeStamp></header>"
         "<body type=\"request\" name=\"SignIn\">"
  		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
-        "<parameter deviceID=\"%s\" passwd=\"%s\" ready=\"%d\"/>"
-        "</body></acpMessage>", m_sessionID ,m_vccID,m_agentID,m_deviceID,m_deviceID,m_passwd,m_ready);
+        "<parameter deviceID=\"%s\" passwd=\"%s\" ready=\"%d\" taskID=\"%s\"/>"
+        "</body></acpMessage>", m_sessionID ,m_vccID,m_agentID,m_deviceID,m_deviceID,m_passwd,m_ready,m_taskID);
 	log()->LOG("座席发送signin消息：%s",msg);
     
     //setStatus(Try2SignIn);
     string msg_str = string(msg);
-	return sendMsgEx(msg_str, "SignIn");
+    int ret = sendMsgEx(msg_str, "SignIn");
+    log()->LOG("signIn函数体从sendMsgEx中返回%d", ret);
+	return ret;
 
 }
 
@@ -1769,7 +1797,7 @@ int CAgent::signOut()
 {
 
 	char msg[300];
-	sprintf(msg, "<acpMessage ver=\"2.0.0\">"
+	snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"SignOut\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
@@ -1786,7 +1814,7 @@ int CAgent::setIdle()
 {
 	char msg[300];
 
-    sprintf(msg, "<acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"SetIdle\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
@@ -1802,7 +1830,7 @@ int CAgent::setIdle()
 int CAgent::setBusy()
 {
 	char msg[300];
-    sprintf(msg, "<acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"SetBusy\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
@@ -1819,7 +1847,7 @@ int CAgent::forceBusy()
 {
 	char msg[300];
     
-    sprintf(msg, "<acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"ForceBusy\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
@@ -1838,7 +1866,7 @@ int CAgent::forceIdle()
 {
 	char msg[300];
     
-    sprintf(msg, "<acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"ForceIdle\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
@@ -1858,7 +1886,7 @@ int CAgent::forceOut()
 {
 	char msg[300];
     
-    sprintf(msg, "<acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"ForceOut\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
@@ -1875,7 +1903,7 @@ int CAgent::releaseCall()
 {
 	char msg[300];
     
-    sprintf(msg, "<acpMessage ver=\"2.0.0\">"
+    snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"ReleaseCall\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"

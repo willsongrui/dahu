@@ -1,50 +1,81 @@
-[19:22:50] LOG 座席初始化成功，agentID为0000106666665001，deviceID为0000206666665001，initialIP为192.168.2.191,initialPORT为14800
-[19:22:50] LOG 试图连接CTI服务器，socket为8
-[19:22:50] LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[19:22:50] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
-[19:22:50] LOG <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[19:22:50] LOG 离开sendMsgEx
-[19:22:50] LOG 将消息发送到队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
-[19:22:50] LOG 试图向socket 8发送Initial消息
-[19:22:50] LOG 成功发送消息1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, 长度为159
-[19:22:50] LOG 收到消息 <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
-[19:22:50] LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
-[19:22:50] LOG 成功解析root
-[19:22:50] LOG 成功解析header, body
-[19:22:50] LOG 成功解析timeStamp, sessonID, type, name
-[19:22:50] LOG 成功解析消息type，为response
-[19:22:50] LOG 成功解析消息name, 为ACP_Initial_CONF
-[19:22:50] LOG 成功收到initial Response消息
-[19:22:50] LOG 试图连接CTI服务器，socket为9
-[19:22:50] LOG 将signIn socket 9 加入到socket_agentID_map中
-[19:22:50] LOG 座席发送signin消息：<acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>
-[19:22:50] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>, strName = SignIn
-[19:22:50] LOG <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>
-[19:22:50] LOG 离开sendMsgEx
-[19:22:50] LOG 将消息发送到队列中：1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>
-[19:22:50] LOG 试图向socket 9发送Sign消息
-[19:22:50] LOG 成功发送消息1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0"/></body></acpMessage>
-[19:22:51] LOG 收到消息 2 00000324 020765 on SignIn <acpMessage ver="2.0.0" time="20140331192228"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="1167" desc=""/></body></acpMessage>
-[19:22:51] LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140331192228"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="1167" desc=""/></body></acpMessage>
-[19:22:51] LOG 成功解析root
-[19:22:51] LOG 成功解析header, body
-[19:22:51] LOG 成功解析timeStamp, sessonID, type, name
-[19:22:51] LOG 成功解析消息type，为response
-[19:22:51] LOG 成功解析消息name, 为ACP_SignIn_CONF
-[19:22:51] LOG 成功收到signIn Response消息
-[19:22:51] LOG 座席发送setIdle消息：<acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
-[19:22:51] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>, strName = SetIdle
-[19:22:51] LOG <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
-[19:22:51] LOG 离开sendMsgEx
-[19:22:51] LOG 将消息发送到队列中：1000 on SetIdle <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
-[19:22:51] LOG 试图向socket 9发送Sign消息
-[19:22:51] LOG 成功发送消息1000 on SetIdle <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
-[19:22:51] LOG 收到消息 1 00000324 010764 on SetIdle <acpMessage ver="2.0.0" time="20140331192228"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="2117" desc="��ϯ��¼�ֻ��Ͱ󶨷ֻ���ƥ��"/></body></acpMessage>
-[19:22:51] LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140331192228"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="2117" desc="��ϯ��¼�ֻ��Ͱ󶨷ֻ���ƥ��"/></body></acpMessage>
-[19:22:51] LOG 成功解析root
-[19:22:51] LOG 成功解析header, body
-[19:22:51] LOG 成功解析timeStamp, sessonID, type, name
-[19:22:51] LOG 成功解析消息type，为response
-[19:22:51] LOG 成功解析消息name, 为***CONF
-[19:22:51] LOG 座席状态试图从0到1
-[19:22:51] LOG 收到消息 1 00000324 010764 on OnForceOut <acpMessage ver="2.0.0" time="20140331192228"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnForceOut"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="2117" desc="��ϯ��¼�ֻ��Ͱ󶨷ֻ���ƥ��"/><oprAgentID>0000106666665001</oprAgentID></body></acpMessage>
+[11:42:19] LOG 座席初始化成功，agentID为0000106666665001，deviceID为0000206666665001，initialIP为192.168.2.191,initialPORT为14800
+[11:42:19] LOG 进入create_connection_to_cti中
+[11:42:19] LOG 创建cti非阻塞套接字8成功
+[11:42:19] LOG 试图连接CTI服务器，socket为8
+[11:42:19] LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[11:42:19] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
+[11:42:19] LOG <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[11:42:19] LOG 离开sendMsgEx
+[11:42:19] LOG 将消息发送到队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[11:42:19] LOG 成功将消息发送到队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[11:42:19] LOG 从sendMsg中返回0
+[11:42:19] LOG 试图向socket 8发送Initial消息
+[11:42:19] LOG 成功发送消息1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, 长度为159
+[11:42:19] LOG 收到消息 <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
+[11:42:19] ERROR 0
+[11:42:19] LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
+[11:42:19] LOG 成功解析root
+[11:42:19] LOG 成功解析header, body
+[11:42:19] LOG 成功解析timeStamp, sessonID, type, name
+[11:42:19] LOG 成功解析消息type，为response
+[11:42:19] LOG 成功解析消息name, 为ACP_Initial_CONF
+[11:42:19] LOG 进入handle_msg
+[11:42:19] LOG 成功收到initial Response消息
+[11:42:19] LOG 进入create_connection_to_cti中
+[11:42:19] LOG 创建cti非阻塞套接字9成功
+[11:42:19] LOG 试图连接CTI服务器，socket为9
+[11:42:19] LOG 将signIn socket 9 加入到socket_agentID_map中
+[11:42:19] LOG 座席发送signin消息：<acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0" taskID="0"/></body></acpMessage>
+[11:42:19] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0" taskID="0"/></body></acpMessage>, strName = SignIn
+[11:42:19] LOG <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0" taskID="0"/></body></acpMessage>
+[11:42:19] LOG 离开sendMsgEx
+[11:42:19] LOG 将消息发送到队列中：1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0" taskID="0"/></body></acpMessage>
+[11:42:19] LOG 成功将消息发送到队列中：1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0" taskID="0"/></body></acpMessage>
+[11:42:19] LOG 从sendMsg中返回0
+[11:42:19] LOG signIn函数体从sendMsgEx中返回0
+[11:42:19] LOG handle_message从handle_msg中返回0
+[11:42:19] LOG 从handle_message函数体返回0
+[11:42:19] LOG 试图向socket 9发送Sign消息
+[11:42:19] LOG 成功发送消息1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter deviceID="0000206666665001" passwd="111111" ready="0" taskID="0"/></body></acpMessage>
+[11:42:19] LOG 收到消息 0 00000022 000008 on SignIn <acpMessage ver="2.0.0" time="20140403114147"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="1167" desc=""/></body></acpMessage>
+[11:42:19] ERROR 28
+[11:42:19] LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140403114147"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SignIn"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="1167" desc=""/></body></acpMessage>
+[11:42:19] LOG 成功解析root
+[11:42:19] LOG 成功解析header, body
+[11:42:19] LOG 成功解析timeStamp, sessonID, type, name
+[11:42:19] LOG 成功解析消息type，为response
+[11:42:19] LOG 成功解析消息name, 为ACP_SignIn_CONF
+[11:42:19] LOG 进入handle_msg
+[11:42:19] LOG 成功收到signIn Response消息
+[11:42:19] LOG 座席发送setIdle消息：<acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
+[11:42:19] LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>, strName = SetIdle
+[11:42:19] LOG <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
+[11:42:19] LOG 离开sendMsgEx
+[11:42:19] LOG 将消息发送到队列中：1000 on SetIdle <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
+[11:42:19] LOG 成功将消息发送到队列中：1000 on SetIdle <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
+[11:42:19] LOG 从sendMsg中返回0
+[11:42:19] LOG handle_message从handle_msg中返回0
+[11:42:19] LOG 从handle_message函数体返回0
+[11:42:19] LOG 试图向socket 9发送Sign消息
+[11:42:19] LOG 成功发送消息1000 on SetIdle <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665001</sessionID></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001"/><parameter /></body></acpMessage>
+[11:42:19] LOG 收到消息 3 00000022 030009 on SetIdle <acpMessage ver="2.0.0" time="20140403114147"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="2117" desc="��ϯ��¼�ֻ��Ͱ󶨷ֻ���ƥ��"/></body></acpMessage>
+[11:42:19] ERROR 29
+[11:42:19] LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140403114147"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SetIdle"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="2117" desc="��ϯ��¼�ֻ��Ͱ󶨷ֻ���ƥ��"/></body></acpMessage>
+[11:42:19] LOG 成功解析root
+[11:42:19] LOG 成功解析header, body
+[11:42:19] LOG 成功解析timeStamp, sessonID, type, name
+[11:42:19] LOG 成功解析消息type，为response
+[11:42:19] LOG 成功解析消息name, 为***CONF
+[11:42:19] LOG 进入handle_msg
+[11:42:19] LOG 座席状态试图从0到1
+[11:42:19] LOG handle_message从handle_msg中返回0
+[11:42:19] LOG 从handle_message函数体返回0
+[11:42:19] LOG 收到消息 3 00000022 030009 on OnForceOut <acpMessage ver="2.0.0" time="20140403114147"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnForceOut"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="2117" desc="��ϯ��¼�ֻ��Ͱ󶨷ֻ���ƥ��"/><oprAgentID>0000106666665001</oprAgentID></body><[11:42:19] ERROR 32
+[11:42:19] LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140403114147"><header><sessionID>666666-0000026666665001</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnForceOut"><agent vccID="666666" agentID="0000106666665001" deviceID="0000206666665001" agentStatus="0" phoneStatus="0" master="0"/><cause code="2117" desc="��ϯ��¼�ֻ��Ͱ󶨷ֻ���ƥ��"/><oprAgentID>0000106666665001</oprAgentID></body></acpMessage>
+[11:42:19] LOG 成功解析root
+[11:42:19] LOG 成功解析header, body
+[11:42:19] LOG 成功解析timeStamp, sessonID, type, name
+[11:42:19] LOG 成功解析消息type，为event
+[11:42:19] LOG 进入handle_msg
+[11:42:19] LOG handle_message从handle_msg中返回0
+[11:42:19] LOG 从handle_message函数体返回0
