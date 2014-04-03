@@ -108,7 +108,7 @@ int create_agents()
 		agent->m_is_sign_in = false;
 		snprintf(agent->m_passwd, sizeof(agent->m_passwd), "%s", conf.passwd.c_str());
 		snprintf(agent->m_vccID, sizeof(agent->m_vccID), "%s", conf.vccID.c_str());
-		snprintf(agent->m_taskID, sizeof(m_taskID), "%s", conf.taskID.c_str());
+		snprintf(agent->m_taskID, sizeof(agent->m_taskID), "%s", conf.taskID.c_str());
 		agent->log()->LOG("座席初始化成功，agentID为%s，deviceID为%s，initialIP为%s,initialPORT为%d", agent->m_agentID, agent->m_deviceID,agent->m_initial_IP.c_str(), agent->m_initial_Port);
 		
 		int agentfd = create_connection_to_cti(agent->m_initial_IP, agent->m_initial_Port, agent);
@@ -391,38 +391,49 @@ void strip_vec(vector<string>& vec)
 	}
 }
 
-void msgSplit(vector<string>& vec, const string& message, string endFlag)
+void msgSplit(vector<string>& vec, const string& message, string& endFlag)
 {
-	simu_log->LOG("进入%s中", "msgSplit");	
-	int len = endFlag.length();
-	int pos = -1;
+	simu_log->LOG("进入%s中, 消息为%s", "msgSplit", message.c_str());	
+	int len = endFlag.size();
+	int pos = 1;
 	int pre = 0;
 	pos = message.find(endFlag);
 	string remain;
-	while(pos!=string::npos)
+	while(pos != string::npos)
 	{
 		vec.push_back(message.substr(pre,pos+len-pre));
+		simu_log->LOG("vec + 1");
 		pre = pos + len;
 		pos = message.find(endFlag, pre);
 	}
-	if(pre!=string::npos)
+	if(pre != string::npos)
 	{
 		remain = message.substr(pre);
+		simu_log->LOG("要加入remain的pre为%d, ", pre);
+		vec.push_back(remain);
 	}
-	vec.push_back(remain);
+	
+	simu_log->LOG("得到%d段消息", vec.size());
+	for(int i=0; i<vec.size(); i++)
+	{
+		simu_log->LOG("第%d段，%s", i,vec[i].c_str());
+	}
 	strip_vec(vec);
 
 }
 int handle_message(int sockFd, string& message)
 {
-	simu_log->LOG("进入%s中", "handle_message");
+
+	simu_log->LOG("进入%s中,收到%s", "handle_message", message.c_str());
+	
 	int n;
 	int ret = 0;
 	vector<string> msg;
 	if(center.webSocket.find(sockFd)!=center.webSocket.end())		//webSocket是接收web命令的套接字
 	{
-		msgSplit(msg, message, string("</webMsg>"));
-		for(int i=0; i<msg.size(); i++)
+		string endFlag("</webmsg>");
+		msgSplit(msg, message, endFlag);
+		for(int i=0; i < msg.size(); i++)
 		{	
 			n = handle_web_message(sockFd, msg[i]);
 			if(n < 0)
@@ -444,14 +455,23 @@ int handle_message(int sockFd, string& message)
 		}
 		else
 		{
+			if(agent->m_remain_msg.length()!=0)
+			{
+				message = agent->m_remain_msg + message;
+				agent->m_remain_msg.clear();
+			}
+			string endFlag("</acpMessage>");
 			
-			if(agent->remain_msg.empty()!=false)
-				message = agent->remain_msg + message;
-			
-			msgSplit(msg, message, string("</acpMessage>"));
-			agent->remain_msg = msg[msg.size()-1];
+			msgSplit(msg, message, endFlag);
+			if(msg.size()>=1)
+			{
+				agent->m_remain_msg = msg[msg.size()-1];
+			}
+			simu_log->LOG("收到%d段报文", msg.size());
+
 			for(int i=0; i < msg.size()-1; i++)
 			{
+				simu_log->LOG("收到座席消息%d,%s", i, msg[i].c_str());
 				n = agent->handle_message(msg[i], sockFd);
 				agent->log()->LOG("从handle_message函数体返回%d", n);
 				if(n < 0)

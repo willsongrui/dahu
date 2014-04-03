@@ -35,13 +35,14 @@ void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 	if(logFd < 0)
 		return;
 	char temp[500];
+	//char temp[1024];
 	memset(temp,0,sizeof(temp));
 	vsnprintf(temp, sizeof(temp), fmt, arg);
 	if(temp[strlen(temp)-1] == '\n')
 		temp[strlen(temp)-1] = '\0';
 	
 	char buffer[500];
-	
+	//char buffer[1024];
 	snprintf(buffer, sizeof(buffer), "[%s] %s %s\n",getTime(),type,temp);
 	printf("%s",buffer);
 	if(write(logFd, buffer, strlen(buffer)) <0)

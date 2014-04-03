@@ -228,12 +228,14 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 	log()->LOG("收到消息 %s",msg.c_str());
 
 	size_t pos = msg.find("<acpMessage");
-	log()->ERROR("%d", pos);
+
+	
 	if(pos == string::npos)
 	{
 		log()->ERROR("座席收到的消息格式错误(没有<acp),具体消息为 %s",msg.c_str());
 		return -1;
 	}
+
 	if(quick == true)
 	{
 		string cmd = find_cmd(msg, pos);
@@ -255,7 +257,7 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 	//log()->ERROR("ALIVE2");
 	string xml_msg = msg.substr(pos);
 	//log()->LOG(xml_msg.c_str());
-	if(msgParse(xml_msg)<0)
+	if(msgParse(xml_msg) < 0)
 	{
 		log()->ERROR("msgParse 错误");
 		return -1;
@@ -333,6 +335,7 @@ int CAgent::handle_msg()
 				}
 				else
 				{
+					setIdle();
 					log()->LOG("座席的后续处理状态是%d,系统不自动发送setIdle请求",idleStatus);
 					if(idleStatus == 1)
 					{
@@ -920,7 +923,7 @@ int CAgent::msgParse(string& msg)
 {
 	log()->LOG("msgParse处理消息%s", msg.c_str());
 	xml_document<> doc;
-	char str_msg[500];
+	char str_msg[1000];
 	snprintf(str_msg, sizeof(str_msg), "%s", msg.c_str());
 	
 	try
@@ -960,7 +963,11 @@ int CAgent::msgParse(string& msg)
 			name = body->first_attribute("name");
 			if(timeStamp)
 			{
-				strncpy(m_acpEvent.eventHeader.timeStamp, timeStamp->value(), sizeof(timeStamp->value()));
+				if(strcmp("", timeStamp->value()) != 0)
+				{
+					strncpy(m_acpEvent.eventHeader.timeStamp, timeStamp->value(), sizeof(timeStamp->value()));
+					snprintf(m_timeStamp, sizeof(m_timeStamp), "%s", timeStamp->value());
+				}
 			}
 			if(!(sessionID&&type&&name))
 			{
@@ -1773,10 +1780,10 @@ int CAgent::signIn()
 	m_sessionID[12] = '2';
 	char msg[1000];
 	snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
-        "<header><sessionID>%s</sessionID><serialID></serialID><timeStamp></timeStamp></header>"
+        "<header><sessionID>%s</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header>"
         "<body type=\"request\" name=\"SignIn\">"
  		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
-        "<parameter deviceID=\"%s\" passwd=\"%s\" ready=\"%d\" taskID=\"%s\"/>"
+        "<parameter deviceID=\"%s\" passwd=\"%s\" ready=\"%d\" taskId=\"%s\"/>"
         "</body></acpMessage>", m_sessionID ,m_vccID,m_agentID,m_deviceID,m_deviceID,m_passwd,m_ready,m_taskID);
 	log()->LOG("座席发送signin消息：%s",msg);
     
@@ -1796,7 +1803,7 @@ CAgent::~CAgent()
 int CAgent::signOut()
 {
 
-	char msg[300];
+	char msg[1000];
 	snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"SignOut\">"
@@ -1812,14 +1819,17 @@ int CAgent::signOut()
 
 int CAgent::setIdle()
 {
-	char msg[300];
+	char msg[1000];
 
     snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
-        "<header><sessionID>%s</sessionID></header>"
+        "<header>"
+        "<sessionID>%s</sessionID>"
+        "<serialID></serialID><serviceID></serviceID>"
+        "<timeStamp>%s</timeStamp></header>"
         "<body type=\"request\" name=\"SetIdle\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
         "<parameter />"
-        "</body></acpMessage>", m_sessionID ,m_vccID,m_agentID,m_deviceID);
+        "</body></acpMessage>", m_sessionID ,m_timeStamp, m_vccID,m_agentID,m_deviceID);
    	
 	log()->LOG("座席发送setIdle消息：%s",msg);
 	//setStatus(Try2SetIdle);
@@ -1829,7 +1839,7 @@ int CAgent::setIdle()
 
 int CAgent::setBusy()
 {
-	char msg[300];
+	char msg[1000];
     snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"SetBusy\">"
@@ -1845,7 +1855,7 @@ int CAgent::setBusy()
 
 int CAgent::forceBusy()
 {
-	char msg[300];
+	char msg[1000];
     
     snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
@@ -1864,7 +1874,7 @@ int CAgent::forceBusy()
 
 int CAgent::forceIdle()
 {
-	char msg[300];
+	char msg[1000];
     
     snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
@@ -1884,7 +1894,7 @@ int CAgent::forceIdle()
 
 int CAgent::forceOut()
 {
-	char msg[300];
+	char msg[1000];
     
     snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
@@ -1901,7 +1911,7 @@ int CAgent::forceOut()
 
 int CAgent::releaseCall()
 {
-	char msg[300];
+	char msg[1000];
     
     snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"

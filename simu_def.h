@@ -452,7 +452,7 @@ public:
 	int BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body);
 	int msgParse(std::string& msg);
 	int find_sock_type(int);
-	
+
 
 
 
@@ -460,7 +460,7 @@ public:
 	std::string find_cmd(const std::string&, int);
 	int handle_msg();
 
-	std::string remain_msg;
+	std::string m_remain_msg;
 	//每个座席都有一个唯一的日志文件，根据等级不同分为LOG和ERROR
 	CLOG* log();
 	AgentState_t m_agentStatus;
