@@ -1,13 +1,15 @@
-#include <string>
+
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <stdio.h>
+#include <signal.h>
 #include <memory.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <map>
+#include <string>
 #include <queue>
 #include "simulation.h"
 #include "simu_def.h"
@@ -21,20 +23,45 @@ CConf conf;
 CLOG* simu_log;						
 
 using namespace std;
-void agentReportAlarm()
+void agentReportAlarm(int signo)
 {
+
 	if(NULL != simu_log)
 	{
 		simu_log->LOG("进入alarm中");
 	}
+	//simu_log->LOG("进入alarm中");
 	map<string, CAgent*>::iterator iter;
+
+	int total_agent_num = 0;
+	int total_SIGNIN_num = 0;
+	
+	memset(center.agent_state_array, 0, sizeof(center.agent_state_array));
 	for(iter = center.agentID_agent_map.begin(); iter != center.agentID_agent_map.end(); iter++)
 	{
 		if(iter->second->m_is_sign_in == true)
 		{
 			iter->second->agentReport();
+			total_SIGNIN_num++;
 		}
+
+		total_agent_num++;
+		string state = center.detail_state_dict[iter->second->m_curState];
+		simu_log->INFO("当前座席ID %s 状态为 %s，initial_socket为 %d， sign_socket为 %d", (iter->first).c_str(), state.c_str(), iter->second->m_initial_sock, iter->second->m_signIn_sock);
+		center.agent_state_array[iter->second->m_curState]++;
 	}
+	for(int i = 0; i < static_cast<int>(AGENT_END); i++)
+	{
+		simu_log->LOG("当前共有%d个座席状态为：%s", center.agent_state_array[i], center.detail_state_dict[static_cast<DetailState_t>(i)].c_str());
+	}
+	
+
+	map<int, string>::iterator sock_agentID_iter;
+	for(sock_agentID_iter = center.socket_agentID_map.begin(); sock_agentID_iter != center.socket_agentID_map.end(); sock_agentID_iter++)
+	{	
+		simu_log->INFO("当前socekt %d 对应于座席ID为 %s ", sock_agentID_iter->first, (sock_agentID_iter->second).c_str());
+	}
+
 	alarm(110);
 
 }
@@ -56,7 +83,7 @@ int main()
 		printf("打开配置文件错误\n");
 		return -1;
 	}
-	simu_log->LOG("读取配置文件成功");
+	simu_log->INFO("读取配置文件成功");
 	//simu_log->ERROR("读取配置文件成功");
 
 	epollfd = epoll_create(MAX_EVENTS);
@@ -66,7 +93,7 @@ int main()
 		simu_log->ERROR("EPOLL 错误");
 		return -1; 
 	}
-	simu_log->LOG("EPOLL加载成功");
+	simu_log->INFO("EPOLL加载成功");
 	
 	//监听web服务器
 	int listenWeb = create_connection_to_web(conf.webPort);
@@ -86,6 +113,13 @@ int main()
 	}
 	
 	struct epoll_event ev,events[MAX_EVENTS];
+	
+	if(signal(SIGALRM, agentReportAlarm) == SIG_ERR)
+	{
+		simu_log->ERROR("创建alarm失败");
+	}
+	alarm(5);
+	simu_log->LOG("创建alarm成功");
 	
 	while(true)
 	{
@@ -110,9 +144,15 @@ int main()
 		int nfds = epoll_wait(epollfd, events, MAX_EVENTS,10);
 		if(nfds == -1)
 		{
-			simu_log->ERROR("epoll_wait 错误, 错误原因 %s ", strerror(errno));
-
-			return -1;
+			if(errno == EINTR)
+			{
+				simu_log->ERROR("EINTR, continue");
+			}
+			else
+			{
+				simu_log->ERROR("epoll_wait 错误, 错误原因 %s ", strerror(errno));
+				return -1;
+			}
 		}
 		for(int n = 0; n < nfds; ++n)
 		{

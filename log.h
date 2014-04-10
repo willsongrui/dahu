@@ -19,6 +19,8 @@ public:
 	~CLOG();
 	void ERROR(const char* fmt,...);
 	void LOG(const char* fmt,...);
+	void INFO(const char* fmt,...);
+	void WARNING(const char* fmt,...);
 	void write_to_log(const char* type, const char* fmt, va_list arg);
 	int logFd;
 	struct timeval tv;

@@ -594,6 +594,7 @@ string find_agentID(int sockFd)
 		simu_log->ERROR("查找socket:%d时失败", sockFd);
 		map <int,string>::iterator it;
 		string sockets;
+
 		for(it = center.socket_agentID_map.begin(); it!=center.socket_agentID_map.end(); it++)
 		{
 			int cur_sock = it->first;
@@ -601,7 +602,7 @@ string find_agentID(int sockFd)
 			sprintf(temp, "%d ", cur_sock);
 			sockets = sockets + string(temp);
 		}
-		simu_log->ERROR("当前socket_agentID_map中socket只含有%s", sockets.c_str());
+		simu_log->WARNING("当前socket_agentID_map中socket只含有%s", sockets.c_str());
 		string NOTFOUND("NONEXIST");
 		return NOTFOUND;
 	}
@@ -609,16 +610,26 @@ string find_agentID(int sockFd)
 	return iter->second;
 
 }
+
+string describe_detail_state(DetailState_t)
+{
+	map<DetailState_t, string> dictionary;
+}
+
+
+
+
+
 int close_sock_and_erase(int sockFd)
 {
+	simu_log->LOG("试图close_sock_and_erase%d", sockFd);
 	close(sockFd);
 	if(epoll_ctl(epollfd, EPOLL_CTL_DEL, sockFd,NULL) < 0)
 	{
 		
 		simu_log->LOG("%s while deleting fd %d",strerror(errno),sockFd);
-		return -1;
+		//return -1;
 	}
-
 	
 	map <int, queue<string> >::iterator iter;
 	iter = center.webSocket.find(sockFd);

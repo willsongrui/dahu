@@ -1,0 +1,112 @@
+[08:28:01]LOG 座席初始化成功，agentID为0000106666665022，deviceID为0000026666665022，initialIP为192.168.2.191,initialPORT为14800
+[08:28:01]LOG 进入create_connection_to_cti中
+[08:28:01]LOG 创建cti非阻塞套接字20成功
+[08:28:01]LOG 试图连接CTI服务器，socket为20
+[08:28:01]LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[08:28:01]LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
+[08:28:01]LOG 离开sendMsgEx
+[08:28:01]LOG 成功将消息发送到Initial队列中：1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[08:28:01]LOG 从sendMsg中返回0
+[08:28:01]LOG 试图向socket 20发送Initial消息
+[08:28:01]LOG 成功发送消息1000 on Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, 长度为159
+[08:28:01]LOG 收到消息 <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
+[08:28:01]LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="n" desc="" ip="192.168.2.191" port="14801"/></body></acpMessage>
+[08:28:01]LOG 消息长度为182
+[08:28:01]LOG 成功解析type, 为response
+[08:28:01]LOG 成功解析消息name, 为Initial
+[08:28:01]LOG 成功解析消息name, 为ACP_Initial_CONF
+[08:28:01]LOG 进入handle_msg
+[08:28:01]LOG 成功收到initial Response消息
+[08:28:01]LOG 进入create_connection_to_cti中
+[08:28:01]LOG 创建cti非阻塞套接字18成功
+[08:28:01]LOG 试图连接CTI服务器，socket为18
+[08:28:01]LOG 将signIn socket 18 加入到socket_agentID_map中
+[08:28:01]LOG 座席的sign socket为18
+[08:28:01]LOG 座席发送signin消息：<acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter deviceID="0000026666665022" passwd="111111" ready="0" taskId="0000016666661188888"/></body></acpMessage>
+[08:28:01]LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter deviceID="0000026666665022" passwd="111111" ready="0" taskId="0000016666661188888"/></body></acpMessage>, strName = SignIn
+[08:28:01]LOG 离开sendMsgEx
+[08:28:01]LOG 将消息发送到signIn队列中：1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter deviceID="0000026666665022" passwd="111111" ready="0" taskId="0000016666661188888"/></body></acpMessage>
+[08:28:01]LOG 从sendMsg中返回0
+[08:28:01]LOG signIn函数体从sendMsgEx中返回0
+[08:28:01]LOG 座席状态试图从0到1
+[08:28:01]LOG handle_message从handle_msg中返回0
+[08:28:01]LOG 从handle_message函数体返回0
+[08:28:01]LOG 试图向socket 18发送Sign消息
+[08:28:01]LOG 成功发送消息1000 on SignIn <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="request" name="SignIn"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter deviceID="0000026666665022" passwd="111111" ready="0" taskId="0000016666661188888"/></body></acpMessage>
+[08:28:01]LOG 收到消息 0 00000799 000687 on SignIn <acpMessage ver="2.0.0" time="20140410082740"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="response" name="SignIn"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022" agentStatus="1" phoneStatus="0" master="0"/><cause code="0" desc=""/><agentParam idleStatus="1" idleSubStatus="0" groupID="00000166
+[08:28:01]LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140410082740"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="response" name="SignIn"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022" agentStatus="1" phoneStatus="0" master="0"/><cause code="0" desc=""/><agentParam idleStatus="1" idleSubStatus="0" groupID="000001666666012000" agentType
+[08:28:01]LOG 消息长度为685
+[08:28:01]LOG 成功解析type, 为response
+[08:28:01]LOG 成功解析消息name, 为SignIn
+[08:28:01]LOG 成功解析消息name, 为ACP_SignIn_CONF
+[08:28:01]LOG 进入handle_msg
+[08:28:01]LOG 成功收到signIn Response消息
+[08:28:01]LOG 座席发送setIdle消息：<acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter /></body></acpMessage>
+[08:28:01]LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter /></body></acpMessage>, strName = SetIdle
+[08:28:01]LOG 离开sendMsgEx
+[08:28:01]LOG 将消息发送到signIn队列中：1000 on SetIdle <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter /></body></acpMessage>
+[08:28:01]LOG 从sendMsg中返回0
+[08:28:01]LOG 座席的后续处理状态是1,系统不自动发送setIdle请求
+[08:28:01]LOG 座席状态试图从1到3
+[08:28:01]LOG handle_message从handle_msg中返回0
+[08:28:01]LOG 从handle_message函数体返回0
+[08:28:01]LOG 试图向socket 18发送Sign消息
+[08:28:01]LOG 成功发送消息1000 on SetIdle <acpMessage ver="2.0.0"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="request" name="SetIdle"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022"/><parameter /></body></acpMessage>
+[08:28:01]LOG 收到消息 1 00000799 010685 on SetIdle <acpMessage ver="2.0.0" time="20140410082740"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="response" name="SetIdle"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022" agentStatus="2" phoneStatus="0" master="0"/><cause code="0" desc=""/></body></acpMessage>
+[08:28:01]LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140410082740"><header><sessionID>666666-0000026666665022</sessionID><serialID></serialID><serviceID></serviceID><timeStamp>20140410082740-00000799</timeStamp></header><body type="response" name="SetIdle"><agent vccID="666666" agentID="0000106666665022" deviceID="0000026666665022" agentStatus="2" phoneStatus="0" master="0"/><cause code="0" desc=""/></body></acpMessage>
+[08:28:01]LOG 消息长度为402
+[08:28:01]LOG 成功解析type, 为response
+[08:28:01]LOG 成功解析消息name, 为SetIdle
+[08:28:01]LOG 成功解析消息name, 为***CONF
+[08:28:01]LOG 进入handle_msg
+[08:28:01]LOG 座席状态试图从3到3
+[08:28:01]LOG handle_message从handle_msg中返回0
+[08:28:01]LOG 从handle_message函数体返回0
+[08:28:32]LOG 收到消息 2 00000799 020687 serviceevent off OnQueueStatusChanged <acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082810" count="1"
+[08:28:32]LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082810" count="1"><service mode="queueLen" queuelen ="1"/></servic
+[08:28:32]LOG 消息长度为490
+[08:28:32]LOG 成功解析type, 为event
+[08:28:32]LOG 成功解析消息name, 为OnQueueReport
+[08:28:32]ERROR 不认识的eventType: OnQueueReport
+[08:28:32]ERROR msgParse 错误
+[08:28:32]LOG 从handle_message函数体返回-1
+[08:28:34]LOG 收到消息 2 00000799 020687 serviceevent off OnQueueStatusChanged <acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082813" count="1"
+[08:28:34]LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082813" count="1"><service mode="queueLen" queuelen ="0"/></servic
+[08:28:34]LOG 消息长度为490
+[08:28:34]LOG 成功解析type, 为event
+[08:28:34]LOG 成功解析消息name, 为OnQueueReport
+[08:28:34]ERROR 不认识的eventType: OnQueueReport
+[08:28:34]ERROR msgParse 错误
+[08:28:34]LOG 从handle_message函数体返回-1
+[08:28:35]LOG 收到消息 1 00000799 010693 serviceevent off OnQueueStatusChanged <acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082813" count="1"
+[08:28:35]LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082813" count="1"><service mode="queueLen" queuelen ="1"/></servic
+[08:28:35]LOG 消息长度为490
+[08:28:35]LOG 成功解析type, 为event
+[08:28:35]LOG 成功解析消息name, 为OnQueueReport
+[08:28:35]ERROR 不认识的eventType: OnQueueReport
+[08:28:35]ERROR msgParse 错误
+[08:28:35]LOG 从handle_message函数体返回-1
+[08:28:38]LOG 收到消息 1 00000799 010693 serviceevent off OnQueueStatusChanged <acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082817" count="1"
+[08:28:38]LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082817" count="1"><service mode="queueLen" queuelen ="0"/></servic
+[08:28:38]LOG 消息长度为490
+[08:28:38]LOG 成功解析type, 为event
+[08:28:38]LOG 成功解析消息name, 为OnQueueReport
+[08:28:38]ERROR 不认识的eventType: OnQueueReport
+[08:28:38]ERROR msgParse 错误
+[08:28:38]LOG 从handle_message函数体返回-1
+[08:28:39]LOG 收到消息 1 00000799 010699 serviceevent off OnQueueStatusChanged <acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082817" count="1"
+[08:28:39]LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082817" count="1"><service mode="queueLen" queuelen ="1"/></servic
+[08:28:39]LOG 消息长度为490
+[08:28:39]LOG 成功解析type, 为event
+[08:28:39]LOG 成功解析消息name, 为OnQueueReport
+[08:28:39]ERROR 不认识的eventType: OnQueueReport
+[08:28:39]ERROR msgParse 错误
+[08:28:39]LOG 从handle_message函数体返回-1
+[08:28:41]LOG 收到消息 1 00000799 010699 serviceevent off OnQueueStatusChanged <acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082820" count="1"
+[08:28:41]LOG msgParse处理消息<acpMessage ver="2.0.0"><header><sessionID></sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="event" name="OnQueueReport"><agent vccID="" agentID="" deviceID="" agentStatus="" phoneStatus="" master=""></agent><cause code="0" desc=""></cause><serviceInfo vccid="666666" serviceid="000001666666012000" servicename="&#x6D4B;&#x8BD5;2000" time="20140410082820" count="1"><service mode="queueLen" queuelen ="0"/></servic
+[08:28:41]LOG 消息长度为490
+[08:28:41]LOG 成功解析type, 为event
+[08:28:41]LOG 成功解析消息name, 为OnQueueReport
+[08:28:41]ERROR 不认识的eventType: OnQueueReport
+[08:28:41]ERROR msgParse 错误
+[08:28:41]LOG 从handle_message函数体返回-1

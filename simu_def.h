@@ -31,7 +31,7 @@ typedef enum
 {
     CS_IDLE = 0,
     CS_ORIGATED,
-    CS_INITIATED ,
+    CS_INITIATED,
     CS_QUEUED ,
     CS_DELIVERED ,
     CS_ALERTING,
@@ -49,16 +49,20 @@ typedef enum
 	AG_WORKING_AFTER_CALL = 4,
 
 }AgentState_t;
+
 typedef enum 
 {
-	AGENT_BUSY,
-	AGENT_IDLE,
-	AGENT_SIGNIN,
-	AGENT_SIGNOUT,
-	AGENT_RELEASE_SUCCESS,
-	AGENT_ANSWERING,
-	
+	AGENT_FRESH = 0,
+	AGENT_INITIAL = 1,
+	AGENT_SIGNIN = 2,
+	AGENT_IDLE = 3,
+	AGENT_BUSY = 4,
+	AGENT_ANSWERING = 5,
+	AGENT_RELEASE = 6,
+	AGENT_SIGNOUT = 7,
+	AGENT_END = 8,
 }DetailState_t;
+
 
 typedef struct
 {
@@ -421,7 +425,7 @@ public:
 	//将待发送的消息发送给CTI（待发送的消息保存在队列中）
 	//int send_message();
 	//更新座席的状态，支持两种模式，默认的easy模式不检查状态转移的合法性，而严格状态则会检查并告警
-	int setStatus(DetailState_t, bool easy_mode = true );		
+	
 	//发送request请求
 	int initial();
 	int signOut();
@@ -524,18 +528,18 @@ class CCenter
 {
 public:
 	
+	int agent_state_array[20];
 	std::map <int, std::queue<std::string> > webSocket;
 	
 	std::map<int, std::string> socket_agentID_map;  //socket和agent的映射map
 	std::map<std::string, CAgent*> agentID_agent_map;
 	std::queue<int> socket_Not_In_Epoll;	
-	
+	std::map<DetailState_t, std::string> detail_state_dict;
 	int agentNum;
 	//std::vector <std::string> agentID;
 	int m_totalCall;
 	int m_successCall;
 	int m_failCall;
 	CCenter();
-	
 };
 #endif

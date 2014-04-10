@@ -25,11 +25,21 @@ CLOG::~CLOG()
 void CLOG::ERROR(const char* fmt,...)
 {
 	va_list arg;
-	va_start(arg,fmt);
+	va_start(arg, fmt);
 	write_to_log("ERROR", fmt, arg);
 	va_end(arg);
 	
 }
+
+void CLOG::WARNING(const char* fmt,...)
+{
+	va_list arg;
+	va_start(arg,fmt);
+	write_to_log("WARNING", fmt, arg);
+	va_end(arg);
+	
+}
+
 void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 {
 	if(logFd < 0)
@@ -43,13 +53,34 @@ void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 	
 	char buffer[500];
 	//char buffer[1024];
-	snprintf(buffer, sizeof(buffer), "[%s] %s %s\n",getTime(),type,temp);
+	snprintf(buffer, sizeof(buffer), "[%s]%s %s\n",getTime(),type, temp);
+	/*
+	if(strcmp(type, "LOG") != 0)
+	{
+		if(strcmp(type, "WARNING") != 0)
+		{
+			printf("%s",buffer);
+		}
+	}*/
+	buffer[sizeof(buffer) - 2] = '\n';
+	buffer[sizeof(buffer) - 1] = '\0';
 	printf("%s",buffer);
+	
 	if(write(logFd, buffer, strlen(buffer)) <0)
 	{
 		printf("写日志文件失败,失败原因 : %s\n",strerror(errno));
 	}
 }
+
+void CLOG::INFO(const char* fmt, ...)
+{
+	va_list arg;
+	va_start(arg,fmt);
+	write_to_log("INFO",fmt,arg);
+	va_end(arg);
+
+}
+
 void CLOG::LOG(const char* fmt, ...)
 {
 	va_list arg;

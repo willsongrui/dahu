@@ -114,12 +114,18 @@ string CAgent::getHeader()
 }
 int CAgent::sendMsg(string& str, int type)
 {
-	log()->LOG("将消息发送到队列中：%s",str.c_str());
-	if(type==1)
+	
+	if(type == 1)
+	{
 		m_signIn_msgToSend.push(str);
+		log()->LOG("将消息发送到signIn队列中：%s",str.c_str());
+	}
 	else
+	{
 		m_initial_msgToSend.push(str);
-	log()->LOG("成功将消息发送到队列中：%s",str.c_str());
+		log()->LOG("成功将消息发送到Initial队列中：%s",str.c_str());
+	}
+	
 	return 0;
 }
 int CAgent::sendMsgEx(string& msg,const char* strName)
@@ -131,7 +137,7 @@ int CAgent::sendMsgEx(string& msg,const char* strName)
 	char strTrace[] = "on";
 	char str[500];
 	//msg.replace(msg.find("<header></header>"),17,getHeader());
-	log()->LOG(msg.c_str());
+	//log()->LOG(msg.c_str());
 	snprintf(str, 500, "%s %s %s %s","1000", strTrace, strName, msg.c_str());
 	string temp = string(str);
 	log()->LOG("离开sendMsgEx");
@@ -159,7 +165,7 @@ int CAgent::agentReport()
         "<body type=\"request\" name=\"AgentReport\">"
 		"<agent vccID=\"%s\" agentID=\"%s\" deviceID=\"%s\"/>"
         "<parameter agentStatus=\"%d\" phoneStatus =\"%d\"/>"
-        "</body></acpMessage>",m_vccID,m_agentID,m_deviceID,m_agentStatus,m_phoneStatus);
+        "</body></acpMessage>", m_vccID, m_agentID, m_deviceID, m_agentStatus, m_phoneStatus);
     string temp = string(msg);
     return sendMsgEx(temp, "AgentReport");    
 }
@@ -223,15 +229,12 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 {
 
 	int type = find_sock_type(sockFd);
-
 	//log()->LOG("ALIVE0");
-	log()->LOG("收到消息 %s",msg.c_str());
-
+	log()->LOG("收到消息 %s", msg.c_str());
 	size_t pos = msg.find("<acpMessage");
-
-	
 	if(pos == string::npos)
 	{
+		
 		log()->ERROR("座席收到的消息格式错误(没有<acp),具体消息为 %s",msg.c_str());
 		return -1;
 	}
@@ -307,10 +310,14 @@ int CAgent::handle_msg()
 				log()->LOG("将signIn socket %d 加入到socket_agentID_map中", sock);
 				center.socket_agentID_map.insert(make_pair(sock, string(this->m_agentID)));
 				m_signIn_sock = sock;
+				log()->LOG("座席的sign socket为%d", m_signIn_sock);
+				//m_status = string("");
 
 				//close initial sock???
-				close(m_initial_sock);
+				//close(m_initial_sock);
+				//m_initial_sock = -1;
 				int ret = signIn();
+				setAgentStatus(AGENT_INITIAL);
 				//int ret = 0;
 				//log()->LOG("handle_msg从signIn返回%d", ret); 
 				//printf("handle_msg从signIn返回%d", ret); 
@@ -491,7 +498,7 @@ int CAgent::handle_msg()
 			//20120727
 			if(strcmp(msg->event.acpEventReport.u.releaseEventReport.releaseDevice,msg->event.acpEventReport.u.generalEventReport.agent.deviceID)==0)
 			{
-				setAgentStatus(AGENT_RELEASE_SUCCESS);
+				setAgentStatus(AGENT_RELEASE);
 				msg->event.acpEventReport.u.releaseEventReport.callInfo.device = NULL;
 				log()->LOG("Release Success");
 				
@@ -922,8 +929,9 @@ int CAgent::BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body)
 int CAgent::msgParse(string& msg)
 {
 	log()->LOG("msgParse处理消息%s", msg.c_str());
+	log()->LOG("消息长度为%d", msg.length());
 	xml_document<> doc;
-	char str_msg[1000];
+	char str_msg[1500];
 	snprintf(str_msg, sizeof(str_msg), "%s", msg.c_str());
 	
 	try
@@ -947,16 +955,17 @@ int CAgent::msgParse(string& msg)
 	}
 	else
 	{
-		log()->LOG("成功解析root");
+		//log()->LOG("成功解析root");
 		header = root->first_node("header");
 		body = root->first_node("body");
 		if(!(header&&body))
 		{
+			log()->ERROR("解析header和body失败");
 			RELEASE_AND_EXIT
 		}
 		else
 		{
-			log()->LOG("成功解析header, body");
+			//log()->LOG("成功解析header, body");
 			timeStamp = header->first_node("timeStamp");
 			sessionID = header->first_node("sessionID");
 			type = body->first_attribute("type");
@@ -971,15 +980,18 @@ int CAgent::msgParse(string& msg)
 			}
 			if(!(sessionID&&type&&name))
 			{
+				log()->ERROR("解析sessionID, type, name失败");
 				RELEASE_AND_EXIT
 			}
 			else
 			{
-				log()->LOG("成功解析timeStamp, sessonID, type, name");
+				//log()->LOG("成功解析timeStamp, sessonID, type, name");
 				
 				snprintf(m_acpEvent.eventHeader.sessionID, sizeof(sessionID->value()), "%s", sessionID->value());
 				snprintf(m_sessionID, sizeof(m_sessionID), "%s", sessionID->value());
 				
+				log()->LOG("成功解析type, 为%s", type->value());
+				log()->LOG("成功解析消息name, 为%s", name->value());	
 				if(strcmp(type->value(), "request")==0)
 				{
 					m_acpEvent.eventHeader.eventClass = EC_REQUEST;
@@ -997,7 +1009,7 @@ int CAgent::msgParse(string& msg)
 					log()->ERROR("type字段被解析成%s，我们不认识", type->value());
 					RELEASE_AND_EXIT
 				}
-				log()->LOG("成功解析消息type，为%s", type->value());
+				
 
 				map <std::string,EventType_t>::iterator it;
 				it = CAgent::eventTypeMap.find(name->value());
@@ -1007,7 +1019,9 @@ int CAgent::msgParse(string& msg)
 					m_acpEvent.eventHeader.eventType = it->second;
 				}
 				else
+				{
 					m_acpEvent.eventHeader.eventType = ACP_UNKNOWN;
+				}
 				
 				
 				//get_agent_phone_status(body);
@@ -1020,6 +1034,7 @@ int CAgent::msgParse(string& msg)
 					{
 						log()->LOG("成功解析消息name, 为%s", "ACP_Initial_CONF");
 						BuildIntialConf(m_acpEvent.event.acpConfirmation.u.initialConf,body);
+
 						break;
 					}
 					case ACP_SignIn_CONF:
@@ -1231,10 +1246,11 @@ int CAgent::msgParse(string& msg)
 						BuildGeneralEventReport(m_acpEvent.event.acpEventReport.u.generalEventReport,body);
 						break;
 					case ACP_HEART_BEAT:
+						sendHeartBeat();
 						break;					
 					default:
 	                    //ASSERT(FALSE);
-						log()->ERROR("不认识的eventType");
+						log()->ERROR("不认识的eventType: %s", name->value());
 						RELEASE_AND_EXIT
 						break;
 						
@@ -1588,6 +1604,7 @@ CAgent::CAgent()
 {
 	
 	//inteval = statusAfterCall = -1;
+	m_curState = AGENT_FRESH;
 	m_initial_sock = -1;
 	m_signIn_sock = -1;
 	m_connected = -1;
@@ -1617,6 +1634,7 @@ CAgent::CAgent()
 	}
 	if(CAgent::eventTypeMap.empty()==true)
 	{
+		CAgent::eventTypeMap.insert(make_pair("heartBeat", ACP_HEART_BEAT));
 		CAgent::eventTypeMap.insert(make_pair("HeartBeat", ACP_HEART_BEAT));	
 		CAgent::eventTypeMap.insert(make_pair("Initial", ACP_Initial_CONF));	
 		CAgent::eventTypeMap.insert(make_pair("SignIn", ACP_SignIn_CONF));	
@@ -1766,11 +1784,7 @@ CLOG* CAgent::log()
 }
 int CAgent::signIn()
 {
-	//sockState = 0;
 	
-	
-	//m_sessionID[11] = 2;
-	//m_sessionID[12] = 0;
 	char vccID[6];
 	snprintf(vccID, sizeof(vccID), "%s", m_vccID);
 	char deviceID[16];
@@ -1816,6 +1830,7 @@ int CAgent::signOut()
 	string msg_str = string(msg);
 	return sendMsgEx(msg_str, "Signout");
 }
+
 
 int CAgent::setIdle()
 {
