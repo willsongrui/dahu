@@ -457,7 +457,7 @@ public:
 	int msgParse(std::string& msg);
 	int find_sock_type(int);
 
-
+	int GetCauseInfo(xml_node<>* body);
 
 
 	int setAgentStatus(DetailState_t, bool);
@@ -516,7 +516,8 @@ public:
 	
 	int m_statusAfterCall;		//电话接通后所处的状态：0:后续处理 1：自动空闲 2：自动置忙 3：时间间隔后自动空闲 4：时间间隔后自动置忙
 	int m_autoStatusInteval;				//后处理后状态自动切换时间间隔，idleStatus为3或者4时有效后处理后状态自动切换时间间隔，idleStatus为3或者4时有效
-				
+	int m_cause_code;
+	std::string m_cause_desc;				
 	CAgent();
 	~CAgent();
 

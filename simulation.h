@@ -18,6 +18,6 @@ int handle_web_message(int sockFd, std::string&);
 //CAgent* find_agent(const std::string&);
 CAgent* find_agent(int sockFd);
 std::string find_agentID(int sockFd);
-void msgSplit(std::vector<std::string>& vec, const std::string& message, std::string& endFlag);
+int msgSplit(std::vector<std::string>& vec, const std::string& message, std::string& endFlag);
 #endif
 

@@ -1,4 +1,3 @@
-
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -62,7 +61,7 @@ void agentReportAlarm(int signo)
 		simu_log->INFO("当前socekt %d 对应于座席ID为 %s ", sock_agentID_iter->first, (sock_agentID_iter->second).c_str());
 	}
 
-	alarm(110);
+	alarm(50);
 
 }
 int main()
@@ -141,12 +140,13 @@ int main()
 			}
 		}
 
-		int nfds = epoll_wait(epollfd, events, MAX_EVENTS,10);
+		int nfds = epoll_wait(epollfd, events, MAX_EVENTS, 10);
 		if(nfds == -1)
 		{
 			if(errno == EINTR)
 			{
 				simu_log->ERROR("EINTR, continue");
+				continue;
 			}
 			else
 			{
@@ -172,7 +172,7 @@ int main()
 
 			else if(ev.events & EPOLLIN)
 			{
-				simu_log->LOG("socekt %d 可读");
+				simu_log->LOG("socekt %d 可读", ev.data.fd);
 				if(ev.data.fd == listenWeb)
 				{
 					struct sockaddr_in addr;
@@ -202,7 +202,7 @@ int main()
 				{
 					simu_log->LOG("收到来自socket%d的消息", ev.data.fd);
 					char buf[2000];
-					int ret = recv(ev.data.fd, buf, sizeof(buf),0);
+					int ret = recv(ev.data.fd, buf, sizeof(buf), 0);
 					if(ret == 0) 
 					{
 						simu_log->LOG("socket %d 关闭", ev.data.fd);

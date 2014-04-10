@@ -391,9 +391,10 @@ void strip_vec(vector<string>& vec)
 	}
 }
 
-void msgSplit(vector<string>& vec, const string& message, string& endFlag)
+int msgSplit(vector<string>& vec, const string& message, string& endFlag)
 {
-	simu_log->LOG("进入%s中, 消息为%s", "msgSplit", message.c_str());	
+	int has_imcomplete_message = 0;
+	simu_log->LOG("进入%s中, 长度为%d, 消息为%s", "msgSplit", message.length(), message.c_str());	
 	int len = endFlag.size();
 	int pos = 1;
 	int pre = 0;
@@ -401,13 +402,18 @@ void msgSplit(vector<string>& vec, const string& message, string& endFlag)
 	string remain;
 	while(pos != string::npos)
 	{
-		vec.push_back(message.substr(pre,pos+len-pre));
-		simu_log->LOG("vec + 1");
+		vec.push_back(message.substr(pre, pos+len-pre));
+		
 		pre = pos + len;
 		pos = message.find(endFlag, pre);
 	}
-	if(pre != string::npos)
+	if(pre >= message.length()|| pre == string::npos)
 	{
+		has_imcomplete_message = 0;
+	}
+	else
+	{
+		has_imcomplete_message = 1;
 		remain = message.substr(pre);
 		simu_log->LOG("要加入remain的pre为%d, ", pre);
 		vec.push_back(remain);
@@ -416,14 +422,14 @@ void msgSplit(vector<string>& vec, const string& message, string& endFlag)
 	simu_log->LOG("得到%d段消息", vec.size());
 	for(int i=0; i<vec.size(); i++)
 	{
-		simu_log->LOG("第%d段，%s", i,vec[i].c_str());
+		simu_log->LOG("第%d段，%s", i+1, vec[i].c_str());
 	}
 	strip_vec(vec);
+	return has_imcomplete_message;
 
 }
 int handle_message(int sockFd, string& message)
 {
-
 	simu_log->LOG("进入%s中,收到%s", "handle_message", message.c_str());
 	
 	int n;
@@ -431,6 +437,7 @@ int handle_message(int sockFd, string& message)
 	vector<string> msg;
 	if(center.webSocket.find(sockFd)!=center.webSocket.end())		//webSocket是接收web命令的套接字
 	{
+		simu_log->LOG("收到的是webSocket消息");
 		string endFlag("</webmsg>");
 		msgSplit(msg, message, endFlag);
 		for(int i=0; i < msg.size(); i++)
@@ -455,21 +462,28 @@ int handle_message(int sockFd, string& message)
 		}
 		else
 		{
-			if(agent->m_remain_msg.length()!=0)
+			simu_log->LOG("收到的是agent消息");
+			if(agent->m_remain_msg.length() != 0)
 			{
 				message = agent->m_remain_msg + message;
 				agent->m_remain_msg.clear();
 			}
 			string endFlag("</acpMessage>");
 			
-			msgSplit(msg, message, endFlag);
-			if(msg.size()>=1)
+			int _ret = msgSplit(msg, message, endFlag);
+			if(_ret < 0)
 			{
+				agent->log()->ERROR("msgSplit失败");
+				return -1;
+			}
+			if(_ret == 1)
+			{
+				agent->log()->LOG("收到消息中有不完整的片段");
 				agent->m_remain_msg = msg[msg.size()-1];
 			}
 			simu_log->LOG("收到%d段报文", msg.size());
 
-			for(int i=0; i < msg.size()-1; i++)
+			for(int i=0; i < msg.size(); i++)
 			{
 				simu_log->LOG("收到座席消息%d,%s", i, msg[i].c_str());
 				n = agent->handle_message(msg[i], sockFd);
@@ -602,7 +616,7 @@ string find_agentID(int sockFd)
 			sprintf(temp, "%d ", cur_sock);
 			sockets = sockets + string(temp);
 		}
-		simu_log->WARNING("当前socket_agentID_map中socket只含有%s", sockets.c_str());
+		simu_log->ERROR("当前socket_agentID_map中socket只含有%s", sockets.c_str());
 		string NOTFOUND("NONEXIST");
 		return NOTFOUND;
 	}

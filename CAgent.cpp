@@ -496,20 +496,37 @@ int CAgent::handle_msg()
 	case ACP_OnReleaseSuccess:
 		{
 			//20120727
-			if(strcmp(msg->event.acpEventReport.u.releaseEventReport.releaseDevice,msg->event.acpEventReport.u.generalEventReport.agent.deviceID)==0)
+			//if(strcmp(msg->event.acpEventReport.u.releaseEventReport.releaseDevice,msg->event.acpEventReport.u.generalEventReport.agent.deviceID)==0)
+			//{
+			if(m_cause_code == 0)
 			{
+
 				setAgentStatus(AGENT_RELEASE);
 				msg->event.acpEventReport.u.releaseEventReport.callInfo.device = NULL;
 				log()->LOG("Release Success");
-				
-			}
+			}	
+			//}
 			else
 			{
-				log()->ERROR("Release 失败");
+				log()->ERROR("Release 失败, cause code 为%d, desc为%s", m_cause_code, m_cause_desc.c_str());
 				return -1;
 			}
 		}
 		break;
+	case ACP_OnSystemIdle:
+		{
+			if(m_cause_code == 0)
+			{
+				setAgentStatus(AGENT_IDLE);
+				log()->LOG("自动显闲成功");
+			}
+			else
+			{
+				log()->ERROR("onSystemIdle消息有错");
+				return -1;
+			}
+
+		}
 	/*
 	case ACP_OnCallOutsideSuccTalk:
 		{
@@ -631,7 +648,7 @@ int CAgent::BuildAgentInfo(Agent_t &agentInfo,xml_node<>* body)
 	return 0;
 }
 
-int CAgent::BuildCauseInfo(Cause_t &causeInfo,xml_node<>* body)
+int CAgent::BuildCauseInfo(Cause_t &causeInfo, xml_node<>* body)
 {
     //ASSERT(body != NULL);
     if(body == NULL)
@@ -708,11 +725,21 @@ int CAgent::BuildCallinfo(Callinfo_t &callInfo, xml_node<>* body)
     if(body == NULL)
     	return -1;
 // 	BuildAgentInfo(callinfoEventReport.parameter.agent,body);
-//	BuildCauseInfo(callinfoEventReport.parameter.cause,body);
-	Agent_t agentInfo;
-	BuildAgentInfo(agentInfo,body);
+	/*
+	int causeInfoRet = BuildCauseInfo(callinfoEventReport.parameter.cause, body);
+	
+	int agentInfoRet = BuildAgentInfo(agentInfo,body);
+
+	if(causeInfoRet < 0 || agentInfoRet < 0)
+	{
+		log()->ERROR("BuildCallInfo中causeInfo或agentInfo失败失败");
+		return -1;
+	}
 	if(agentInfo.phoneStatus == CS_IDLE)
+	{
 		return 0;
+	}*/
+	Agent_t agentInfo;
 	xml_node<>* HCallinfo = body->first_node("callinfo");
     
 	if(HCallinfo == NULL)
@@ -925,6 +952,49 @@ int CAgent::BuildCallinfoEventReport(ACPEvent_t &msg,xml_node<>* body)
 	return 0;
 }
 
+int CAgent::GetCauseInfo(xml_node<>* body)
+{
+	if(body == NULL)
+	{
+		log()->ERROR("GetCauseInfo失败");
+		return -1;
+	}
+	xml_node<>* cause  = body->first_node("cause");
+	if(!cause)
+	{
+		log()->ERROR("GetCauseInfo 错误");
+		return -1;
+	}
+	xml_attribute<>* code = cause->first_attribute("code");
+	xml_attribute<>* desc = cause->first_attribute("desc");
+	if(!(code&&desc))
+	{
+		log()->ERROR("GetCauseInfo 错误");
+		return -1;
+	}	
+	if(strcmp(" ", code->value())==0)
+	{
+		m_cause_code = atoi(code->value());
+		m_cause_desc = string(desc->value());
+		
+
+	}
+	else
+	{
+		m_cause_code = 0;
+		m_cause_desc.clear();
+		
+		//snprintf(causeInfo.desc, sizeof(causeInfo.desc),"");
+	}
+	if(m_cause_code != 0)
+	{
+		log()->ERROR("收到错误消息，cause code为%d，失败描述为%s", m_cause_code, m_cause_desc.c_str());
+	}
+
+	//_delete code,desc,cause;
+	return 0;
+
+}
 
 int CAgent::msgParse(string& msg)
 {
@@ -1026,14 +1096,14 @@ int CAgent::msgParse(string& msg)
 				
 				//get_agent_phone_status(body);
 				
-
+				GetCauseInfo(body);
 
 				switch (m_acpEvent.eventHeader.eventType)
 				{
 					case ACP_Initial_CONF:
 					{
 						log()->LOG("成功解析消息name, 为%s", "ACP_Initial_CONF");
-						BuildIntialConf(m_acpEvent.event.acpConfirmation.u.initialConf,body);
+						BuildIntialConf(m_acpEvent.event.acpConfirmation.u.initialConf, body);
 
 						break;
 					}
@@ -1124,19 +1194,25 @@ int CAgent::msgParse(string& msg)
 					case ACP_Bridge_CONF:
 					case ACP_SetCTIParam_CONF:
 					case ACP_SetCallData_CONF:
+					{
 						log()->LOG("成功解析消息name, 为%s", "***CONF");
 						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.generalConf,body);
+					}
 						break;
 					case ACP_QueryAgentStatus_CONF:
+					{
 						log()->LOG("成功解析消息name, 为%s", "ACP_QueryAgentStatus_CONF");
 						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.queryagentstatus.parameter,body);
 						BuildAgentInfo(m_acpEvent.event.acpConfirmation.u.queryagentstatus.destAgentInfo,body);
+					}
 						break;
 					case ACP_QueryAgentCallInfo_CONF:
+					{
 						log()->LOG("成功解析消息name, 为%s", "ACP_QueryAgentCallInfo_CONF");
 						BuildGeneralConf(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.parameter,body);
 						BuildAgentInfo(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.destAgentInfo,body);
 						BuildCallinfo(m_acpEvent.event.acpConfirmation.u.queryAgentCallInfo.callinfo,body);
+					}
 						break;
 					//alerting
 					case ACP_OnOrigated:
@@ -1146,9 +1222,18 @@ int CAgent::msgParse(string& msg)
 						break;
 					case ACP_OnAnswerRequest:
 						log()->LOG("成功解析消息name, 为%s", "ACP_OnAnswerRequest");
-						BuildAnswerRequestEventReport(m_acpEvent,body);
+						BuildAnswerRequestEventReport(m_acpEvent, body);
 						break;
 					//CallingNo="" CalledNo=""
+					
+					case ACP_OnSystemIdle:
+					{
+						;
+
+					}
+						break;
+
+
 					case ACP_OnHangupCallInConf:
 						log()->LOG("成功解析消息name, 为%s", "ACP_OnHangupCallInConf");
 						BuildHangupCallInfo(m_acpEvent.event.acpEventReport.u.hangupCallEventReport,body);
@@ -1182,7 +1267,7 @@ int CAgent::msgParse(string& msg)
 					case ACP_OnConsultationBack:
 					case ACP_OnReturnFromPhone:
 					case ACP_OnReleaseSuccess:
-						BuildReleaseEventReport(m_acpEvent,body);
+						BuildReleaseEventReport(m_acpEvent, body);
 						BuildCallinfo(m_acpEvent.event.acpEventReport.u.releaseEventReport.callInfo,body);
 						break;
 					case ACP_OnAnswerSuccess:
@@ -1613,7 +1698,7 @@ CAgent::CAgent()
 	m_success_call_num = 0;
 	m_ready = 0;
 	m_is_sign_in = false;
-	
+	m_cause_code = 0;
 	
 
 	memset(m_deviceID, 0, sizeof(m_deviceID));
@@ -1752,7 +1837,7 @@ CAgent::CAgent()
 		CAgent::eventTypeMap.insert(make_pair("OnStopListenSuccess", ACP_OnStopListenSuccess));
 		CAgent::eventTypeMap.insert(make_pair("OnStopListenFailure", ACP_OnStopListenFailure));
 		CAgent::eventTypeMap.insert(make_pair("OnListened", ACP_OnListened));
-		CAgent::eventTypeMap.insert(make_pair("OnSystemIdle", ACP_OnListened));
+		CAgent::eventTypeMap.insert(make_pair("OnSystemIdle", ACP_OnSystemIdle));
 		CAgent::eventTypeMap.insert(make_pair("OnQueueReport", ACP_OnQueueReport));
 		CAgent::eventTypeMap.insert(make_pair("OnSystemMessage", ACP_OnSystemMessage));
 	}
