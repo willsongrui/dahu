@@ -82,11 +82,11 @@ string add_int_to_string(string& base, int n)
 	int low_value = atoi(low.c_str()) + n;
 	if(low_value > 99999)
 		return "WRONG"; 
-	base = base.substr(0, base.length()-5);
+	string ret  = base.substr(0, base.length()-5);
 	char tmp[6];
-	sprintf(tmp,"%d",low_value);
-	base = base + string(tmp);
-	return base;
+	snprintf(tmp, sizeof(tmp), "%d", low_value);
+	ret = ret + string(tmp);
+	return ret;
 }	
 int create_agents()
 {

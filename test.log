@@ -1,0 +1,12 @@
+record/0000106666665016:[07:52:40]LOG 收到消息 1 00000879 010847 off OnAnswerRequest <acpMessage ver="2.0.0" time="20140411075215"><header><sessionID>C201404110752150C8A20FB01051306</sessionID><serialID>S201404110752156669270C8A20FB03054552</serialID><serviceID direction="0"></serviceID><timeStamp>20140411075152-00000879</timeStamp></header><body type="event" name="OnAnswerRequest"><agent vccID="666666" agentID="0000106666665016" deviceID="0000026666665016" agentStatus="3" phoneStatus="5" master="1"/><cause code=
+
+record/0000106666665016:[07:52:40]LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140411075215"><header><sessionID>C201404110752150C8A20FB01051306</sessionID><serialID>S201404110752156669270C8A20FB03054552</serialID><serviceID direction="0"></serviceID><timeStamp>20140411075152-00000879</timeStamp></header><body type="event" name="OnAnswerRequest"><agent vccID="666666" agentID="0000106666665016" deviceID="0000026666665016" agentStatus="3" phoneStatus="5" master="1"/><cause code="0" desc=""/><autoStatusInteval
+record/0000106666665016:[07:52:40]LOG 成功解析消息name, 为OnAnswerRequest
+record/0000106666665016:[07:52:40]LOG 成功解析消息name, 为ACP_OnAnswerRequest
+record/0000106666665016:[07:52:40]LOG OnAnswerRequest 成功
+
+record/0000106666665046:[07:52:31]LOG 收到消息 3 00000883 030825 off OnAnswerRequest <acpMessage ver="2.0.0" time="20140411075206"><header><sessionID>C201404110752060C8A20FB03053904</sessionID><serialID>S201404110752064141480C8A20FB01050162</serialID><serviceID direction="0"></serviceID><timeStamp>20140411075153-00000883</timeStamp></header><body type="event" name="OnAnswerRequest"><agent vccID="666666" agentID="0000106666665046" deviceID="0000026666665046" agentStatus="3" phoneStatus="5" master="1"/><cause code=
+record/0000106666665046:[07:52:31]LOG msgParse处理消息<acpMessage ver="2.0.0" time="20140411075206"><header><sessionID>C201404110752060C8A20FB03053904</sessionID><serialID>S201404110752064141480C8A20FB01050162</serialID><serviceID direction="0"></serviceID><timeStamp>20140411075153-00000883</timeStamp></header><body type="event" name="OnAnswerRequest"><agent vccID="666666" agentID="0000106666665046" deviceID="0000026666665046" agentStatus="3" phoneStatus="5" master="1"/><cause code="0" desc=""/><autoStatusInteval
+record/0000106666665046:[07:52:31]LOG 成功解析消息name, 为OnAnswerRequest
+record/0000106666665046:[07:52:31]LOG 成功解析消息name, 为ACP_OnAnswerRequest
+record/0000106666665046:[07:52:31]LOG OnAnswerRequest 成功

@@ -147,7 +147,7 @@ int CAgent::sendMsgEx(string& msg,const char* strName)
 }
 int CAgent::sendHeartBeat()
 {
-	char msg[100];
+	char msg[500];
     snprintf(msg, sizeof(msg), "1000 off heartBeat <acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"response\" name=\"heartBeat\"/>"
@@ -158,7 +158,7 @@ int CAgent::sendHeartBeat()
 
 int CAgent::agentReport()
 {
-	char msg[300];
+	char msg[500];
     
     snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header></header>"
@@ -504,6 +504,7 @@ int CAgent::handle_msg()
 				setAgentStatus(AGENT_RELEASE);
 				msg->event.acpEventReport.u.releaseEventReport.callInfo.device = NULL;
 				log()->LOG("Release Success");
+				setIdle();
 			}	
 			//}
 			else
@@ -1845,7 +1846,7 @@ CAgent::CAgent()
 
 int CAgent::initial()
 {
-	char msg[200];
+	char msg[300];
 	snprintf(msg, sizeof(msg), "<acpMessage ver=\"2.0.0\">"
         "<header><sessionID>%s</sessionID></header>"
         "<body type=\"request\" name=\"Initial\">"

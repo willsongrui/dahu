@@ -14,7 +14,7 @@
 #include "simu_def.h"
 
 #define MAX_EVENTS 1000
-
+const int alarm_sleep_interval = 30;
 
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
@@ -61,7 +61,7 @@ void agentReportAlarm(int signo)
 		simu_log->INFO("当前socekt %d 对应于座席ID为 %s ", sock_agentID_iter->first, (sock_agentID_iter->second).c_str());
 	}
 
-	alarm(50);
+	alarm(alarm_sleep_interval);
 
 }
 int main()
@@ -117,7 +117,7 @@ int main()
 	{
 		simu_log->ERROR("创建alarm失败");
 	}
-	alarm(5);
+	alarm(15);
 	simu_log->LOG("创建alarm成功");
 	
 	while(true)
