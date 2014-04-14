@@ -1,0 +1,9 @@
+[16:08:56]LOG 座席初始化成功，agentID为0000109999991781，deviceID为0000029999991781，initialIP为211.150.71.185,initialPORT为14800
+[16:08:56]LOG 进入create_connection_to_cti中
+[16:08:56]LOG 创建cti非阻塞套接字570成功
+[16:08:56]LOG 试图连接CTI服务器，socket为570
+[16:08:56]LOG 座席发送Initial消息：<acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[16:08:56]LOG 进入sendMsgEx, msg = <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>, strName = Initial
+[16:08:56]LOG 离开sendMsgEx
+[16:08:56]LOG 成功将消息发送到Initial队列中：1000 off Initial <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="request" name="Initial"><parameter vdcode=""/></body></acpMessage>
+[16:08:56]LOG 从sendMsg中返回0

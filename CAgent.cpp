@@ -134,7 +134,7 @@ int CAgent::sendMsgEx(string& msg,const char* strName)
 	int type = 1;
 	if(strcmp(strName, "Initial")==0)
 		type = 0;
-	char strTrace[] = "on";
+	char strTrace[] = "off";
 	char str[500];
 	//msg.replace(msg.find("<header></header>"),17,getHeader());
 	//log()->LOG(msg.c_str());
@@ -230,7 +230,7 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 
 	int type = find_sock_type(sockFd);
 	//log()->LOG("ALIVE0");
-	log()->LOG("收到消息 %s", msg.c_str());
+	log()->LOG("进入CAgent的handle_message: %s", msg.c_str());
 	size_t pos = msg.find("<acpMessage");
 	if(pos == string::npos)
 	{
@@ -266,7 +266,7 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 		return -1;
 	}
 	int ret = handle_msg();
-	log()->LOG("handle_message从handle_msg中返回%d", ret);
+//	log()->LOG("handle_message从handle_msg中返回%d", ret);
 	return ret;
 }
 
@@ -999,8 +999,8 @@ int CAgent::GetCauseInfo(xml_node<>* body)
 
 int CAgent::msgParse(string& msg)
 {
-	log()->LOG("msgParse处理消息%s", msg.c_str());
-	log()->LOG("消息长度为%d", msg.length());
+	//log()->LOG("msgParse处理消息%s", msg.c_str());
+	//log()->LOG("消息长度为%d", msg.length());
 	xml_document<> doc;
 	char str_msg[1500];
 	snprintf(str_msg, sizeof(str_msg), "%s", msg.c_str());
@@ -1057,10 +1057,11 @@ int CAgent::msgParse(string& msg)
 			else
 			{
 				//log()->LOG("成功解析timeStamp, sessonID, type, name");
-				
-				snprintf(m_acpEvent.eventHeader.sessionID, sizeof(sessionID->value()), "%s", sessionID->value());
-				snprintf(m_sessionID, sizeof(m_sessionID), "%s", sessionID->value());
-				
+				if(sizeof(sessionID->value()) > 5)
+				{
+					snprintf(m_acpEvent.eventHeader.sessionID, sizeof(sessionID->value()), "%s", sessionID->value());
+					snprintf(m_sessionID, sizeof(m_sessionID), "%s", sessionID->value());
+				}
 				log()->LOG("成功解析type, 为%s", type->value());
 				log()->LOG("成功解析消息name, 为%s", name->value());	
 				if(strcmp(type->value(), "request")==0)

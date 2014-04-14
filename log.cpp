@@ -30,7 +30,14 @@ void CLOG::ERROR(const char* fmt,...)
 	va_end(arg);
 	
 }
-
+void CLOG::PRINT(const char* fmt,...)
+{
+	va_list arg;
+	va_start(arg,fmt);
+	write_to_log("", fmt, arg);
+	va_end(arg);
+	
+}
 void CLOG::WARNING(const char* fmt,...)
 {
 	va_list arg;
@@ -44,27 +51,28 @@ void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 {
 	if(logFd < 0)
 		return;
-	char temp[500];
+	char temp[2000];
 	//char temp[1024];
 	memset(temp,0,sizeof(temp));
 	vsnprintf(temp, sizeof(temp), fmt, arg);
 	if(temp[strlen(temp)-1] == '\n')
 		temp[strlen(temp)-1] = '\0';
 	
-	char buffer[500];
+	char buffer[2000];
 	//char buffer[1024];
 	snprintf(buffer, sizeof(buffer), "[%s]%s %s\n",getTime(),type, temp);
-	/*
-	if(strcmp(type, "LOG") != 0)
-	{
-		if(strcmp(type, "WARNING") != 0)
-		{
-			printf("%s",buffer);
-		}
-	}*/
+	
 	buffer[sizeof(buffer) - 2] = '\n';
 	buffer[sizeof(buffer) - 1] = '\0';
-	printf("%s",buffer);
+	if(strcmp(type, "") == 0)
+	{
+		//if(strcmp(type, "LOG") != 0)
+		//{
+			printf("%s",buffer);
+		//}
+	}
+	
+	//printf("%s",buffer);
 	
 	if(write(logFd, buffer, strlen(buffer)) <0)
 	{

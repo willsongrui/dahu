@@ -130,9 +130,9 @@ int create_agents()
 		center.socket_agentID_map.erase(agentfd);
 		center.agentID_agent_map.erase(string(agent->m_agentID));
 		
-		simu_log->LOG("将initial socket %d 加入到socket_agentID_map中", agentfd);
+		simu_log->LOG("将initial (%d, %s) 加入到socket_agentID_map中", agentfd, agent->m_agentID);
 		center.socket_agentID_map.insert(make_pair(agentfd, string(agent->m_agentID)));
-		center.agentID_agent_map.insert(make_pair(string(agent->m_agentID),agent));
+		center.agentID_agent_map.insert(make_pair(string(agent->m_agentID), agent));
 		
 		agent->initial();
 	}
@@ -394,7 +394,7 @@ void strip_vec(vector<string>& vec)
 int msgSplit(vector<string>& vec, const string& message, string& endFlag)
 {
 	int has_imcomplete_message = 0;
-	simu_log->LOG("进入%s中, 长度为%d, 消息为%s", "msgSplit", message.length(), message.c_str());	
+	//simu_log->LOG("进入%s中, 长度为%d, 消息为%s", "msgSplit", message.length(), message.c_str());	
 	int len = endFlag.size();
 	int pos = 1;
 	int pre = 0;
@@ -418,20 +418,20 @@ int msgSplit(vector<string>& vec, const string& message, string& endFlag)
 		simu_log->LOG("要加入remain的pre为%d, ", pre);
 		vec.push_back(remain);
 	}
-	
+	/*
 	simu_log->LOG("得到%d段消息", vec.size());
 	for(int i=0; i<vec.size(); i++)
 	{
+
 		simu_log->LOG("第%d段，%s", i+1, vec[i].c_str());
-	}
+	}*/
 	strip_vec(vec);
 	return has_imcomplete_message;
 
 }
-int handle_message(int sockFd, string& message)
+int handle_message(int sockFd, string message)
 {
-	simu_log->LOG("进入%s中,收到%s", "handle_message", message.c_str());
-	
+	//simu_log->LOG("进入%s中,收到%s", "handle_message", message.c_str());
 	int n;
 	int ret = 0;
 	vector<string> msg;
@@ -449,11 +449,9 @@ int handle_message(int sockFd, string& message)
 				ret = -1;
 			}
 		}
-		
 	}
 	else
 	{
-
 		CAgent* agent = find_agent(sockFd);
 		if(!agent)
 		{
@@ -462,14 +460,16 @@ int handle_message(int sockFd, string& message)
 		}
 		else
 		{
-			simu_log->LOG("收到的是agent消息");
+			//simu_log->LOG("收到的是agent消息");
 			if(agent->m_remain_msg.length() != 0)
 			{
+				agent->log()->LOG("座席有上次未完全解析的报文，为%s", agent->m_remain_msg.c_str());
 				message = agent->m_remain_msg + message;
 				agent->m_remain_msg.clear();
 			}
+
+			agent->log()->LOG("从handle_message入口处收到消息%s", message.c_str());
 			string endFlag("</acpMessage>");
-			
 			int _ret = msgSplit(msg, message, endFlag);
 			if(_ret < 0)
 			{
@@ -478,19 +478,23 @@ int handle_message(int sockFd, string& message)
 			}
 			if(_ret == 1)
 			{
-				agent->log()->LOG("收到消息中有不完整的片段");
+				agent->log()->LOG("simulation handle_message 函数收到消息中有不完整的片段, 共%d段报文", msg.size());
 				agent->m_remain_msg = msg[msg.size()-1];
+				for(int i = 0; i < msg.size(); i++)
+				{
+					agent->log()->LOG("解析的第%d段：%s", msg[i].c_str());
+				}
 			}
-			simu_log->LOG("收到%d段报文", msg.size());
-
-			for(int i=0; i < msg.size(); i++)
+						
+			int handle_size = _ret == 1 ? msg.size()-1 : msg.size();
+			
+			for(int i=0; i < handle_size; i++)
 			{
-				simu_log->LOG("收到座席消息%d,%s", i, msg[i].c_str());
 				n = agent->handle_message(msg[i], sockFd);
-				agent->log()->LOG("从handle_message函数体返回%d", n);
+				//agent->log()->INFO("从handle_message函数体返回%d", n);
 				if(n < 0)
 				{
-					simu_log -> ERROR("处理agent_message时失败:%s",msg[i].c_str());
+					//simu_log -> ERROR("处理agent_message时失败:%s",msg[i].c_str());
 					ret = -1;
 				}
 
@@ -550,7 +554,7 @@ int send_message(int sockFd)
 
 int setnonblocking(int sockFd)
 {
-	simu_log->LOG("进入%s中", "setnonblocking");
+	simu_log->INFO("进入%s中", "setnonblocking");
 	if(sockFd <= 0)
 	{
 		simu_log->ERROR("待设置为nonblocking的句柄为负");
@@ -567,7 +571,7 @@ int setnonblocking(int sockFd)
 		simu_log->ERROR("error set flag to O_NONBLOCK for %d :%s",sockFd,strerror(errno));
 		return -1;
 	}
-	simu_log->LOG("离开%s中", "setnonblocking");
+	simu_log->INFO("离开%s中", "setnonblocking");
 	return 0; 
 }
 /*
@@ -636,15 +640,15 @@ string describe_detail_state(DetailState_t)
 
 int close_sock_and_erase(int sockFd)
 {
-	simu_log->LOG("试图close_sock_and_erase%d", sockFd);
-	close(sockFd);
-	if(epoll_ctl(epollfd, EPOLL_CTL_DEL, sockFd,NULL) < 0)
+	simu_log->INFO("试图close_sock_and_erase%d", sockFd);
+	
+	if(epoll_ctl(epollfd, EPOLL_CTL_DEL, sockFd, NULL) < 0)
 	{
 		
-		simu_log->LOG("%s while deleting fd %d",strerror(errno),sockFd);
+		simu_log->ERROR("%s while deleting fd %d",strerror(errno),sockFd);
 		//return -1;
 	}
-	
+	close(sockFd);
 	map <int, queue<string> >::iterator iter;
 	iter = center.webSocket.find(sockFd);
 	if(iter != center.webSocket.end())
@@ -661,10 +665,11 @@ int close_sock_and_erase(int sockFd)
 		simu_log->ERROR("当试图在寻找sockFd为%d的agentID时失败",sockFd);
 		return -1;
 	}*/
+	
+	CAgent* agent = find_agent(sockFd);
 	simu_log->LOG("将socket:%d从socket_agentID_map中删掉", sockFd);
 	center.socket_agentID_map.erase(sockFd);
 	
-	CAgent* agent = find_agent(sockFd);
 	if(agent == NULL)
 	{
 		simu_log->ERROR("当试图在寻找sockFd为%d的agent时失败",sockFd);

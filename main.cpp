@@ -14,8 +14,8 @@
 #include "simu_def.h"
 
 #define MAX_EVENTS 1000
-const int alarm_sleep_interval = 30;
-
+const int alarm_sleep_interval = 20;
+const int epoll_wait_num = 1000;
 int epollfd; 						 //EPOLL句柄
 CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
 CConf conf;
@@ -46,20 +46,21 @@ void agentReportAlarm(int signo)
 
 		total_agent_num++;
 		string state = center.detail_state_dict[iter->second->m_curState];
-		simu_log->INFO("当前座席ID %s 状态为 %s，initial_socket为 %d， sign_socket为 %d", (iter->first).c_str(), state.c_str(), iter->second->m_initial_sock, iter->second->m_signIn_sock);
+		simu_log->LOG("当前座席ID %s 状态为 %s，initial_socket为 %d， sign_socket为 %d", (iter->first).c_str(), state.c_str(), iter->second->m_initial_sock, iter->second->m_signIn_sock);
 		center.agent_state_array[iter->second->m_curState]++;
 	}
 	for(int i = 0; i < static_cast<int>(AGENT_END); i++)
 	{
-		simu_log->LOG("当前共有%d个座席状态为：%s", center.agent_state_array[i], center.detail_state_dict[static_cast<DetailState_t>(i)].c_str());
+		simu_log->PRINT("当前共有%d个座席状态为：%s", center.agent_state_array[i], center.detail_state_dict[static_cast<DetailState_t>(i)].c_str());
 	}
 	
 
 	map<int, string>::iterator sock_agentID_iter;
 	for(sock_agentID_iter = center.socket_agentID_map.begin(); sock_agentID_iter != center.socket_agentID_map.end(); sock_agentID_iter++)
 	{	
-		simu_log->INFO("当前socekt %d 对应于座席ID为 %s ", sock_agentID_iter->first, (sock_agentID_iter->second).c_str());
+		simu_log->LOG("当前socekt %d 对应于座席ID为 %s ", sock_agentID_iter->first, (sock_agentID_iter->second).c_str());
 	}
+	simu_log->LOG("");
 
 	alarm(alarm_sleep_interval);
 
@@ -85,8 +86,11 @@ int main()
 	simu_log->INFO("读取配置文件成功");
 	//simu_log->ERROR("读取配置文件成功");
 
-	epollfd = epoll_create(MAX_EVENTS);
 	
+
+
+	epollfd = epoll_create(MAX_EVENTS);
+		
 	if(epollfd < 0)
 	{
 		simu_log->ERROR("EPOLL 错误");
@@ -117,9 +121,10 @@ int main()
 	{
 		simu_log->ERROR("创建alarm失败");
 	}
-	alarm(15);
+	alarm(10);
 	simu_log->LOG("创建alarm成功");
-	
+	//int agent_report_cnt = 0;
+	char buf[2500];
 	while(true)
 	{
 		//simu_log->LOG("进入大循环");
@@ -141,6 +146,7 @@ int main()
 		}
 
 		int nfds = epoll_wait(epollfd, events, MAX_EVENTS, 10);
+		
 		if(nfds == -1)
 		{
 			if(errno == EINTR)
@@ -156,24 +162,24 @@ int main()
 		}
 		for(int n = 0; n < nfds; ++n)
 		{
-			ev = events[n];
-			if(ev.events & EPOLLERR)
+			//ev = events[n];
+			if(events[n].events & EPOLLERR)
 			{
-				simu_log->ERROR("套接字 %d 错误, 错误原因 %s ",ev.data.fd,strerror(errno));
+				simu_log->ERROR("套接字 %d 错误, 错误原因 %s ", events[n].data.fd,strerror(errno));
 				close_sock_and_erase(ev.data.fd);
 					
 			}
 
-			else if(ev.events & EPOLLHUP)
+			else if(events[n].events & EPOLLHUP)
 			{
-				simu_log->LOG("套接字 %d 对方关闭连接",ev.data.fd);
-				close_sock_and_erase(ev.data.fd);
+				simu_log->LOG("套接字 %d 对方关闭连接",events[n].data.fd);
+				close_sock_and_erase(events[n].data.fd);
 			}
 
-			else if(ev.events & EPOLLIN)
+			else if(events[n].events & EPOLLIN)
 			{
-				simu_log->LOG("socekt %d 可读", ev.data.fd);
-				if(ev.data.fd == listenWeb)
+				simu_log->LOG("socekt %d 可读", events[n].data.fd);
+				if(events[n].data.fd == listenWeb)
 				{
 					struct sockaddr_in addr;
 					socklen_t addrlen = sizeof(addr);
@@ -200,38 +206,58 @@ int main()
 				}
 				else
 				{
-					simu_log->LOG("收到来自socket%d的消息", ev.data.fd);
-					char buf[2000];
-					int ret = recv(ev.data.fd, buf, sizeof(buf), 0);
+					simu_log->LOG("是座席的消息");
+					//char buf[2500];
+					int ret = recv(events[n].data.fd, buf, sizeof(buf) - 1, 0);
 					if(ret == 0) 
 					{
-						simu_log->LOG("socket %d 关闭", ev.data.fd);
-						close_sock_and_erase(ev.data.fd);
+						simu_log->LOG("socket %d 关闭", events[n].data.fd);
+						close_sock_and_erase(events[n].data.fd);
 					}
 					else if(ret < 0)
 					{
-						simu_log->ERROR("套接字 %d 接收错误，错误原因 %s",ev.data.fd,strerror(errno));
+						simu_log->ERROR("套接字 %d 接收错误，错误原因 %s",events[n].data.fd, strerror(errno));
 					}
 					else
 					{
-						string msg = string(buf);
-						while((ret = recv(ev.data.fd, buf, sizeof(buf),0)) > 0)
+
+						//buf[ret] = '\0';
+						//char ret_ch[2500];
+						//int ret_pos = 0;
+						string msg;
+						int pre_pos = 0;
+						for(int i = 0; i < ret; i++)
 						{
-							msg = msg + string(buf);
+							msg.push_back(buf[i]);
 						}
-						handle_message(ev.data.fd, msg);
+						
+						/*if(ret < sizeof(buf))
+						{
+							;
+						}
+						else
+						{
+							while((ret = recv(events[n].data.fd, buf, sizeof(buf),0)) > 0)
+							{
+								buf[ret - 1] = '\0';
+								msg = msg + string(buf);
+							}
+
+						}*/
+						simu_log->LOG("收到来自socket%d的消息,长度为%d %s", events[n].data.fd, msg.size(), msg.c_str());
+						handle_message(events[n].data.fd, msg);
 					}
 				}
 			}
-			else if(ev.events & EPOLLOUT)
+			else if(events[n].events & EPOLLOUT)
 			{
 				//simu_log->LOG("向socket %d发送消息");
-				send_message(ev.data.fd);
+				send_message(events[n].data.fd);
 			}
-			else if(ev.events & EPOLLRDHUP)
+			else if(events[n].events & EPOLLRDHUP)
 			{
-				simu_log->LOG("套接字 %d 对方关闭连接",ev.data.fd);
-				close_sock_and_erase(ev.data.fd);
+				simu_log->LOG("套接字 %d 对方关闭连接",events[n].data.fd);
+				close_sock_and_erase(events[n].data.fd);
 			}
 			
 		}
