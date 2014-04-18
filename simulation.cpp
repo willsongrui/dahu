@@ -19,7 +19,7 @@ extern CCenter center;
 //extern map <string,CAgent*> center.agentID_agent_map;
 extern int epollfd;
 extern CLOG* simu_log;
-extern CConf conf;
+extern CConf* conf;
 //extern queue<int> center.socket_Not_In_Epoll;
 
 /*
@@ -58,12 +58,13 @@ int create_connection_to_cti(string ip, int port, CAgent* agent)
 	addr.sin_port = htons(port);
 
 	int ret = connect(sockFd,(struct sockaddr*)(&addr), sizeof(addr));
-	if((ret<0)&&(errno!=EINPROGRESS))
+	if((ret < 0)&&(errno!=EINPROGRESS))
 	{	
 		agent->log()->ERROR("试图connect时失败，错误原因：%s", strerror(errno));
 		return -1;
 	}
-	agent->log()->LOG("试图连接CTI服务器，socket为%d", sockFd);	
+	agent->log()->LOG("试图连接CTI服务器，socket为%d", sockFd);
+	center.ready_to_send[sockFd] = false;	
 	return sockFd;
 
 }
@@ -74,7 +75,7 @@ int add_to_epoll(int agentfd)
 }
 string add_int_to_string(string& base, int n)
 {
-	simu_log->LOG(base.c_str());
+	//simu_log->LOG(base.c_str());
 
 	if(base.length()<5)
 	 	return "WRONG";
@@ -88,27 +89,28 @@ string add_int_to_string(string& base, int n)
 	ret = ret + string(tmp);
 	return ret;
 }	
-int create_agents()
+int create_agents(bool is_debug)
 {
 	/*if(conf==NULL)
 	{
 		simu_log->ERROR("当试图create_agents时conf实例还没有加载成功");
 		return -1;
 	}*/
-	for(int i=0; i < conf.agentNum; i++)
+	int _agent_num = conf->agentNum;
+	for(int i=0; i < _agent_num; i++)
 	{
-		CAgent* agent = new CAgent();
-		agent->m_initial_IP = conf.ctiIP;
-		agent->m_initial_Port = conf.ctiPort;
-		snprintf(agent->m_agentID, sizeof(agent->m_agentID), "%s", add_int_to_string(conf.agentID, i).c_str());
+		CAgent* agent = new CAgent(is_debug);
+		agent->m_initial_IP = conf->ctiIP;
+		agent->m_initial_Port = conf->ctiPort;
+		snprintf(agent->m_agentID, sizeof(agent->m_agentID), "%s", add_int_to_string(conf->agentID, i).c_str());
 		
 		//agent->m_agentID = add_int_to_string(conf.agentID, i);
-		snprintf(agent->m_deviceID, sizeof(agent->m_deviceID), "%s", add_int_to_string(conf.deviceID, i).c_str());
-		agent->m_ready = conf.ready;
+		snprintf(agent->m_deviceID, sizeof(agent->m_deviceID), "%s", add_int_to_string(conf->deviceID, i).c_str());
+		agent->m_ready = conf->ready;
 		agent->m_is_sign_in = false;
-		snprintf(agent->m_passwd, sizeof(agent->m_passwd), "%s", conf.passwd.c_str());
-		snprintf(agent->m_vccID, sizeof(agent->m_vccID), "%s", conf.vccID.c_str());
-		snprintf(agent->m_taskID, sizeof(agent->m_taskID), "%s", conf.taskID.c_str());
+		snprintf(agent->m_passwd, sizeof(agent->m_passwd), "%s", conf->passwd.c_str());
+		snprintf(agent->m_vccID, sizeof(agent->m_vccID), "%s", conf->vccID.c_str());
+		snprintf(agent->m_taskID, sizeof(agent->m_taskID), "%s", conf->taskID.c_str());
 		agent->log()->LOG("座席初始化成功，agentID为%s，deviceID为%s，initialIP为%s,initialPORT为%d", agent->m_agentID, agent->m_deviceID,agent->m_initial_IP.c_str(), agent->m_initial_Port);
 		
 		int agentfd = create_connection_to_cti(agent->m_initial_IP, agent->m_initial_Port, agent);
@@ -200,16 +202,16 @@ int load_config(const string& confFile)
 	}
 	
 	
-	conf.webPort = atoi(webPort->value());
-	conf.ctiIP = string(ctiIP->value());
-	conf.ctiPort = atoi(ctiPort->value());
-	conf.vccID = string(vccID->value());
-	conf.agentNum = atoi(agentNum->value());
-	conf.agentID = string(agentID->value());
-	conf.ready = atoi(ready->value());
-	conf.passwd = string(passwd->value());
-	conf.deviceID = string(deviceID->value());
-	conf.taskID = string(taskID->value());
+	conf->webPort = atoi(webPort->value());
+	conf->ctiIP = string(ctiIP->value());
+	conf->ctiPort = atoi(ctiPort->value());
+	conf->vccID = string(vccID->value());
+	conf->agentNum = atoi(agentNum->value());
+	conf->agentID = string(agentID->value());
+	conf->ready = atoi(ready->value());
+	conf->passwd = string(passwd->value());
+	conf->deviceID = string(deviceID->value());
+	conf->taskID = string(taskID->value());
 
 	simu_log->LOG("配置文件读取成功");
 	
@@ -390,11 +392,41 @@ void strip_vec(vector<string>& vec)
 		strip(vec[i]);
 	}
 }
+int msgSplit(vector<string>& vec, const string& message, string& endFlag)
+{
+	int has_imcomplete_message = 0;
+	int message_len = message.size();
+	string cur;
+	cur.reserve(message_len);
+	for(int i = 0; i < message_len; i++)
+	{
+		if(message[i] != '\0')
+		{
+			cur.push_back(message[i]);
+		}
+		else
+		{
+			vec.push_back(cur);
+			cur.clear();
+		}	
+	}
+	if(message[message_len - 1] != '\0')
+	{
+		has_imcomplete_message = 1;
+		vec.push_back(cur);
+	}
+	return has_imcomplete_message;
 
+}
+/*
 int msgSplit(vector<string>& vec, const string& message, string& endFlag)
 {
 	int has_imcomplete_message = 0;
 	//simu_log->LOG("进入%s中, 长度为%d, 消息为%s", "msgSplit", message.length(), message.c_str());	
+	
+	for()
+
+
 	int len = endFlag.size();
 	int pos = 1;
 	int pre = 0;
@@ -407,7 +439,7 @@ int msgSplit(vector<string>& vec, const string& message, string& endFlag)
 		pre = pos + len;
 		pos = message.find(endFlag, pre);
 	}
-	if(pre >= message.length()|| pre == string::npos)
+	if(pre >= message.length() || pre == string::npos)
 	{
 		has_imcomplete_message = 0;
 	}
@@ -418,17 +450,10 @@ int msgSplit(vector<string>& vec, const string& message, string& endFlag)
 		simu_log->LOG("要加入remain的pre为%d, ", pre);
 		vec.push_back(remain);
 	}
-	/*
-	simu_log->LOG("得到%d段消息", vec.size());
-	for(int i=0; i<vec.size(); i++)
-	{
-
-		simu_log->LOG("第%d段，%s", i+1, vec[i].c_str());
-	}*/
 	strip_vec(vec);
 	return has_imcomplete_message;
-
 }
+*/
 int handle_message(int sockFd, string message)
 {
 	//simu_log->LOG("进入%s中,收到%s", "handle_message", message.c_str());
@@ -460,6 +485,30 @@ int handle_message(int sockFd, string message)
 		}
 		else
 		{
+			if(agent->m_has_initial_port == false)
+			{
+				struct sockaddr_in sin;
+				memset(&sin, 0, sizeof(sin));
+				int sin_size = sizeof(sin);
+				if(getsockname(sockFd, (struct sockaddr*)&sin, (socklen_t*)&sin_size) ==0)
+				{
+					agent->m_has_initial_port = true;
+					agent->m_src_initial_port = htons(sin.sin_port);
+					agent->log()->INFO("座席initial端口号为%d", agent->m_src_initial_port);
+				}
+			}
+			else if(agent->m_has_signIn_port == false)
+			{
+				struct sockaddr_in sin;
+				memset(&sin, 0, sizeof(sin));
+				int sin_size = sizeof(sin);
+				if(getsockname(sockFd, (struct sockaddr*)&sin, (socklen_t*)&sin_size) ==0)
+				{
+					agent->m_has_signIn_port = true;
+					agent->m_src_signIn_port = htons(sin.sin_port);
+					agent->log()->INFO("座席signIn端口号为%d", agent->m_src_signIn_port);
+				}
+			}
 			//simu_log->LOG("收到的是agent消息");
 			if(agent->m_remain_msg.length() != 0)
 			{
@@ -482,7 +531,7 @@ int handle_message(int sockFd, string message)
 				agent->m_remain_msg = msg[msg.size()-1];
 				for(int i = 0; i < msg.size(); i++)
 				{
-					agent->log()->LOG("解析的第%d段：%s", msg[i].c_str());
+					agent->log()->LOG("解析的第%d段：%s", i+1, msg[i].c_str());
 				}
 			}
 						
@@ -515,6 +564,7 @@ int handle_message(int sockFd, string message)
 
 int send_message(int sockFd)
 {
+	center.ready_to_send[sockFd] = false;
 	map <int,queue<string> >::iterator it;
 	it = center.webSocket.find(sockFd);
 
@@ -711,6 +761,7 @@ int close_sock_and_erase(int sockFd)
 
 int create_connection_to_web(int Port)
 {
+
 	simu_log->LOG("进入create_connection_to_web");
 	int sockFd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockFd < 0)
@@ -741,6 +792,7 @@ int create_connection_to_web(int Port)
 	}
 	listen(sockFd,1000);
 	simu_log->LOG("正在监听%d，等待web端连接");
+	center.ready_to_send[sockFd] = false;
 	return sockFd;
 	
 }

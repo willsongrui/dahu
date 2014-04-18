@@ -1,4 +1,0 @@
-[16:08:56]LOG 座席初始化成功，agentID为0000109999992008，deviceID为0000029999992008，initialIP为211.150.71.185,initialPORT为14800
-[16:08:56]LOG 进入create_connection_to_cti中
-[16:08:56]ERROR 创建cti套接字失败,失败原因: Too many open files
-[16:08:56]ERROR 试图create_connection_to_cti时失败

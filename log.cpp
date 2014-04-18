@@ -2,7 +2,7 @@
 #include "log.h"
 using namespace std;
 
-CLOG::CLOG(string logFile)
+CLOG::CLOG(string logFile, bool debug) : is_debug(debug)
 {
 	//printf("进入CLOG的构造函数");
 	unlink(logFile.c_str());
@@ -73,10 +73,12 @@ void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 	}
 	
 	//printf("%s",buffer);
-	
-	if(write(logFd, buffer, strlen(buffer)) <0)
+	if((is_debug == true)||(strcmp(type, "") == 0 )||(strcmp(type, "ERROR") == 0))
 	{
-		printf("写日志文件失败,失败原因 : %s\n",strerror(errno));
+		if(write(logFd, buffer, strlen(buffer)) <0)
+		{
+			printf("写日志文件失败,失败原因 : %s\n",strerror(errno));
+		}
 	}
 }
 

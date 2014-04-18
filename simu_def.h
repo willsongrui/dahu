@@ -443,6 +443,11 @@ public:
 	int sendHeartBeat();
 	int agentReport();
 	
+	bool m_has_initial_port;
+	bool m_has_signIn_port;
+	int m_src_initial_port;
+	int m_src_signIn_port;
+
 	int BuildGeneralConf(ACPGeneralConfEvent_t &generalConf, xml_node<>* hBody);
 	int BuildAgentInfo(Agent_t &agentInfo,xml_node<>* body);
 	int BuildCauseInfo(Cause_t &causeInfo,xml_node<>* body);
@@ -513,12 +518,12 @@ public:
 	DetailState_t m_curState;
 	DetailState_t m_preState;
 	
-	
+	bool m_is_debug;
 	int m_statusAfterCall;		//电话接通后所处的状态：0:后续处理 1：自动空闲 2：自动置忙 3：时间间隔后自动空闲 4：时间间隔后自动置忙
 	int m_autoStatusInteval;				//后处理后状态自动切换时间间隔，idleStatus为3或者4时有效后处理后状态自动切换时间间隔，idleStatus为3或者4时有效
 	int m_cause_code;
 	std::string m_cause_desc;				
-	CAgent();
+	CAgent(bool is_debug = false);
 	~CAgent();
 
 	std::queue <std::string> m_signIn_msgToSend;   //待发送消息
@@ -536,6 +541,7 @@ public:
 	std::map<std::string, CAgent*> agentID_agent_map;
 	std::queue<int> socket_Not_In_Epoll;	
 	std::map<DetailState_t, std::string> detail_state_dict;
+	std::map<int, bool> ready_to_send;
 	int agentNum;
 	//std::vector <std::string> agentID;
 	int m_totalCall;

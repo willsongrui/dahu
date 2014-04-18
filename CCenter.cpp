@@ -8,6 +8,7 @@ CCenter::CCenter()
 	webSocket.clear();
 	socket_agentID_map.clear();
 	agentID_agent_map.clear();
+	ready_to_send.clear();
 	while(socket_Not_In_Epoll.empty()==false)
 		socket_Not_In_Epoll.pop();
 	

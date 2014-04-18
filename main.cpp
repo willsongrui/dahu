@@ -17,14 +17,18 @@
 const int alarm_sleep_interval = 20;
 const int epoll_wait_num = 1000;
 int epollfd; 						 //EPOLL句柄
-CCenter center; 					 //呼叫中心类,包括连接web服务器的socket
-CConf conf;
+CCenter center = CCenter(); 					 //呼叫中心类,包括连接web服务器的socket
+CConf* conf= new CConf();
 CLOG* simu_log;						
-
+//int enter_alarm_time = 0;
 using namespace std;
 void agentReportAlarm(int signo)
 {
-
+	//enter_alarm_time += 1;
+	/*if(enter_alarm_time > 1000000)
+	{
+		enter_alarm_time = 3;
+	}*/
 	if(NULL != simu_log)
 	{
 		simu_log->LOG("进入alarm中");
@@ -63,15 +67,39 @@ void agentReportAlarm(int signo)
 	simu_log->LOG("");
 
 	alarm(alarm_sleep_interval);
-
+	//exit(0);
+	//if(enter_alarm_time > 4)
+	//{
+    //	exit(0);
+    //}
 }
-int main()
+int main(int argc, char* argv[])
 {
 	//系统的日志文件
 	//unlink("simulation.log");
+/*	if(argc == 1)
+	{
+		if(strcmp(argv[1], "-debug") == 0)
+		{
+#define _DEBUG true
+		}
+	}
+	
+#ifndef _DEBUG 
+#define _DEBUG 	false
+#endif
+*/
+	bool _DEBUG = false;
+	if(argc == 2)
+	{
+		if(strcmp(argv[1], "-d") == 0)
+			_DEBUG = true;
+	}
+	
 	try
 	{
-		simu_log = new CLOG("simulation.log");
+
+		simu_log = new CLOG("simulation.log", _DEBUG);
 	}
 	catch(int e)
 	{
@@ -99,7 +127,7 @@ int main()
 	simu_log->INFO("EPOLL加载成功");
 	
 	//监听web服务器
-	int listenWeb = create_connection_to_web(conf.webPort);
+	int listenWeb = create_connection_to_web(conf->webPort);
 
 	if(listenWeb < 0)
 	{
@@ -109,7 +137,7 @@ int main()
 
 	center.socket_Not_In_Epoll.push(listenWeb);
 
-	if(create_agents() < 0)
+	if(create_agents(_DEBUG) < 0)
 	{
 		simu_log->ERROR("初始化座席失败");
 		return -1;
@@ -145,7 +173,7 @@ int main()
 			}
 		}
 
-		int nfds = epoll_wait(epollfd, events, MAX_EVENTS, 10);
+		int nfds = epoll_wait(epollfd, events, MAX_EVENTS, 20);
 		
 		if(nfds == -1)
 		{
@@ -163,13 +191,16 @@ int main()
 		for(int n = 0; n < nfds; ++n)
 		{
 			//ev = events[n];
+			
 			if(events[n].events & EPOLLERR)
 			{
-				simu_log->ERROR("套接字 %d 错误, 错误原因 %s ", events[n].data.fd,strerror(errno));
-				close_sock_and_erase(ev.data.fd);
+				if(errno != EALREADY && errno != EINPROGRESS)
+				{
+					simu_log->ERROR("套接字 %d 错误, 错误原因 %s ", events[n].data.fd,strerror(errno));
+					close_sock_and_erase(events[n].data.fd);
+				}
 					
 			}
-
 			else if(events[n].events & EPOLLHUP)
 			{
 				simu_log->LOG("套接字 %d 对方关闭连接",events[n].data.fd);
@@ -229,6 +260,7 @@ int main()
 						for(int i = 0; i < ret; i++)
 						{
 							msg.push_back(buf[i]);
+												
 						}
 						
 						/*if(ret < sizeof(buf))
@@ -247,9 +279,14 @@ int main()
 						simu_log->LOG("收到来自socket%d的消息,长度为%d %s", events[n].data.fd, msg.size(), msg.c_str());
 						handle_message(events[n].data.fd, msg);
 					}
+					/*if(events[n].events & EPOLLOUT)
+					{
+						send_message(events[n].data.fd);
+
+					}*/
 				}
 			}
-			else if(events[n].events & EPOLLOUT)
+			else if(center.ready_to_send[events[n].data.fd] && (events[n].events & EPOLLOUT))
 			{
 				//simu_log->LOG("向socket %d发送消息");
 				send_message(events[n].data.fd);

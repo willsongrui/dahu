@@ -72,6 +72,7 @@ int CAgent::send_message(int sockFd)
 			}
 			log()->LOG("成功发送消息%s, 长度为%d", buff, ret);
 		}
+		center.ready_to_send[sockFd] = false;
 	}
 	else if(type == 1)
 	{
@@ -119,11 +120,13 @@ int CAgent::sendMsg(string& str, int type)
 	{
 		m_signIn_msgToSend.push(str);
 		log()->LOG("将消息发送到signIn队列中：%s",str.c_str());
+		center.ready_to_send[m_signIn_sock] = true;
 	}
 	else
 	{
 		m_initial_msgToSend.push(str);
 		log()->LOG("成功将消息发送到Initial队列中：%s",str.c_str());
+		center.ready_to_send[m_initial_sock] = true;
 	}
 	
 	return 0;
@@ -239,24 +242,37 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 		return -1;
 	}
 
-	if(quick == true)
+	if((msg.find("OnStaticInfoReport") != string::npos) || (msg.find("OnQueueStatusChanged") != string::npos))
 	{
+		log()->LOG("收到的是OnstaticInfoReport or OnQueueStatusChanged");
+		return 0;
+
+	}
+
+//	if(quick == true)
+/*
 		string cmd = find_cmd(msg, pos);
+		log()->INFO("收到的命令码为%s", cmd.c_str());
 		if(cmd != "NONEXIST")
 		{
 			log()->ERROR("收到消息没有命令码");
 		}
 		else
 		{
-			/*
+			if(cmd == "OnStaticInfoReport" || cmd == "OnQueueStatusChanged")
+			{
+				log()->LOG("收到的是OnstaticInfoReport or OnQueueStatusChanged");
+				return 0;
+			}
+			
 			if(allowed_cmd.find(cmd) == allowed_cmd.end())
 			{
 				log()->LOG("该消息的命令码是%s,被忽略");
 				return 0;
 			}
-			*/
-		}
-	}
+			
+		
+	}}*/
 	//log()->ERROR("ALIVE2");
 	string xml_msg = msg.substr(pos);
 	//log()->LOG(xml_msg.c_str());
@@ -1687,10 +1703,16 @@ int CAgent::handle_message(const string& msg)
 */
 
 map<string,EventType_t> CAgent::eventTypeMap;
-CAgent::CAgent()
+CAgent::CAgent(bool is_debug)
 {
 	
 	//inteval = statusAfterCall = -1;
+	m_is_debug = is_debug;
+	m_has_initial_port = false;
+	m_has_signIn_port = false;
+	m_src_initial_port = -999;
+	m_src_signIn_port = -999;
+
 	m_curState = AGENT_FRESH;
 	m_initial_sock = -1;
 	m_signIn_sock = -1;
@@ -1864,7 +1886,7 @@ CLOG* CAgent::log()
 	if(m_log == NULL)
 	{
 		string agentName = "record/" + string(m_agentID);
-		m_log = new CLOG(agentName);
+		m_log = new CLOG(agentName, m_is_debug);
 
 	}
 	return m_log;

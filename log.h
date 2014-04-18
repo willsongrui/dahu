@@ -15,7 +15,7 @@
 class CLOG
 {
 public:
-	CLOG(std::string);
+	CLOG(std::string, bool is_debug = false);
 	~CLOG();
 	void ERROR(const char* fmt,...);
 	void LOG(const char* fmt,...);
@@ -38,5 +38,6 @@ private:
 		return m_asctime;
 
 	}
+	bool is_debug;
 };
 #endif
