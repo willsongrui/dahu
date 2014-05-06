@@ -1,0 +1,459 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+ no time accumulated
+
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  Ts/call  Ts/call  name    
+  0.00      0.00     0.00      155     0.00     0.00  rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&)
+  0.00      0.00     0.00      119     0.00     0.00  CConf::CConf()
+  0.00      0.00     0.00       79     0.00     0.00  CLOG::LOG(char const*, ...)
+  0.00      0.00     0.00       65     0.00     0.00  CAgent::log()
+  0.00      0.00     0.00       30     0.00     0.00  void rapidxml::xml_document<char>::parse_node_contents<0>(char*&, rapidxml::xml_node<char>*)
+  0.00      0.00     0.00        9     0.00     0.00  find_agent(int)
+  0.00      0.00     0.00        9     0.00     0.00  find_agentID(int)
+  0.00      0.00     0.00        8     0.00     0.00  CLOG::PRINT(char const*, ...)
+  0.00      0.00     0.00        8     0.00     0.00  std::_Rb_tree<DetailState_t, std::pair<DetailState_t const, std::string>, std::_Select1st<std::pair<DetailState_t const, std::string> >, std::less<DetailState_t>, std::allocator<std::pair<DetailState_t const, std::string> > >::_M_insert_unique(std::pair<DetailState_t const, std::string> const&)
+  0.00      0.00     0.00        7     0.00     0.00  CLOG::INFO(char const*, ...)
+  0.00      0.00     0.00        6     0.00     0.00  std::_Rb_tree<std::string, std::pair<std::string const, EventType_t>, std::_Select1st<std::pair<std::string const, EventType_t> >, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, EventType_t> >*)
+  0.00      0.00     0.00        5     0.00     0.00  msgSplit(std::vector<std::string, std::allocator<std::string> >&, std::string const&, std::string&)
+  0.00      0.00     0.00        5     0.00     0.00  CAgent::send_message(int)
+  0.00      0.00     0.00        5     0.00     0.00  CAgent::handle_message(std::string&, int, bool)
+  0.00      0.00     0.00        5     0.00     0.00  std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&)
+  0.00      0.00     0.00        4     0.00     0.00  std::_Deque_base<std::string, std::allocator<std::string> >::_M_initialize_map(unsigned int)
+  0.00      0.00     0.00        3     0.00     0.00  CAgent::handle_msg()
+  0.00      0.00     0.00        3     0.00     0.00  CAgent::GetCauseInfo(rapidxml::xml_node<char>*)
+  0.00      0.00     0.00        3     0.00     0.00  CAgent::sendMsg(std::string&, int)
+  0.00      0.00     0.00        3     0.00     0.00  CAgent::msgParse(std::string&)
+  0.00      0.00     0.00        3     0.00     0.00  CAgent::sendMsgEx(std::string&, char const*)
+  0.00      0.00     0.00        3     0.00     0.00  std::_Rb_tree<std::string, std::pair<std::string const, EventType_t>, std::_Select1st<std::pair<std::string const, EventType_t> >, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::find(std::string const&)
+  0.00      0.00     0.00        3     0.00     0.00  std::_Rb_tree<std::string, std::pair<std::string const, CAgent*>, std::_Select1st<std::pair<std::string const, CAgent*> >, std::less<std::string>, std::allocator<std::pair<std::string const, CAgent*> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, CAgent*> >*)
+  0.00      0.00     0.00        3     0.00     0.00  std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::string> >*)
+  0.00      0.00     0.00        3     0.00     0.00  std::_Rb_tree<int, std::pair<int const, bool>, std::_Select1st<std::pair<int const, bool> >, std::less<int>, std::allocator<std::pair<int const, bool> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<int const, bool> >, std::pair<int const, bool> const&)
+  0.00      0.00     0.00        2     0.00     0.00  load_config(std::string const&)
+  0.00      0.00     0.00        2     0.00     0.00  setnonblocking(int)
+  0.00      0.00     0.00        2     0.00     0.00  add_int_to_string(std::string&, int)
+  0.00      0.00     0.00        2     0.00     0.00  create_connection_to_cti(std::string, int, CAgent*)
+  0.00      0.00     0.00        2     0.00     0.00  CAgent::BuildAgentInfo(Agent_t&, rapidxml::xml_node<char>*)
+  0.00      0.00     0.00        2     0.00     0.00  CAgent::BuildCauseInfo(Cause_t&, rapidxml::xml_node<char>*)
+  0.00      0.00     0.00        2     0.00     0.00  CAgent::BuildGeneralConf(Parameter_t&, rapidxml::xml_node<char>*)
+  0.00      0.00     0.00        2     0.00     0.00  std::_Deque_base<int, std::allocator<int> >::_M_initialize_map(unsigned int)
+  0.00      0.00     0.00        2     0.00     0.00  std::_Rb_tree<int, std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > >, std::_Select1st<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > >, std::less<int>, std::allocator<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > >*)
+  0.00      0.00     0.00        2     0.00     0.00  std::_Rb_tree<int, std::pair<int const, bool>, std::_Select1st<std::pair<int const, bool> >, std::less<int>, std::allocator<std::pair<int const, bool> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, bool> >*)
+  0.00      0.00     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN6CAgent12send_messageEi
+  0.00      0.00     0.00        1     0.00     0.00  _GLOBAL__sub_I_epollfd
+  0.00      0.00     0.00        1     0.00     0.00  add_to_epoll(int)
+  0.00      0.00     0.00        1     0.00     0.00  CLOG::ERROR(char const*, ...)
+  0.00      0.00     0.00        1     0.00     0.00  CLOG::CLOG(std::string, bool)
+  0.00      0.00     0.00        1     0.00     0.00  CAgent::find_sock_type(int)
+  0.00      0.00     0.00        1     0.00     0.00  CAgent::BuildIntialConf(ACPInitialConfEvent_t&, rapidxml::xml_node<char>*)
+  0.00      0.00     0.00        1     0.00     0.00  CAgent::signIn()
+  0.00      0.00     0.00        1     0.00     0.00  CAgent::initial()
+  0.00      0.00     0.00        1     0.00     0.00  CAgent::setIdle()
+  0.00      0.00     0.00        1     0.00     0.00  CAgent::CAgent(bool)
+  0.00      0.00     0.00        1     0.00     0.00  std::_Rb_tree<DetailState_t, std::pair<DetailState_t const, std::string>, std::_Select1st<std::pair<DetailState_t const, std::string> >, std::less<DetailState_t>, std::allocator<std::pair<DetailState_t const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<DetailState_t const, std::string> >*)
+  0.00      0.00     0.00        1     0.00     0.00  std::_Rb_tree<std::string, std::pair<std::string const, CAgent*>, std::_Select1st<std::pair<std::string const, CAgent*> >, std::less<std::string>, std::allocator<std::pair<std::string const, CAgent*> > >::equal_range(std::string const&)
+  0.00      0.00     0.00        1     0.00     0.00  std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_insert_unique(std::pair<int const, std::string> const&)
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+ 
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this 
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) no time propagated
+
+index % time    self  children    called     name
+[1]      0.0    0.00    0.00     123+62      <cycle 1 as a whole> [1]
+                0.00    0.00     155             rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&) <cycle 1> [9]
+                0.00    0.00      30             void rapidxml::xml_document<char>::parse_node_contents<0>(char*&, rapidxml::xml_node<char>*) <cycle 1> [13]
+-----------------------------------------------
+                                  32             void rapidxml::xml_document<char>::parse_node_contents<0>(char*&, rapidxml::xml_node<char>*) <cycle 1> [13]
+                0.00    0.00       1/123         load_config(std::string const&) [34]
+                0.00    0.00       9/123         CAgent::msgParse(std::string&) [28]
+                0.00    0.00     113/123         CAgent::CAgent(bool) [54]
+[9]      0.0    0.00    0.00     155         rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&) <cycle 1> [9]
+                                  30             void rapidxml::xml_document<char>::parse_node_contents<0>(char*&, rapidxml::xml_node<char>*) <cycle 1> [13]
+-----------------------------------------------
+                0.00    0.00       1/119         CLOG::ERROR(char const*, ...) [47]
+                0.00    0.00       9/119         CLOG::INFO(char const*, ...) [18]
+                0.00    0.00      13/119         CLOG::PRINT(char const*, ...) [16]
+                0.00    0.00      96/119         CLOG::LOG(char const*, ...) [11]
+[10]     0.0    0.00    0.00     119         CConf::CConf() [10]
+-----------------------------------------------
+                0.00    0.00       1/79          load_config(std::string const&) [34]
+                0.00    0.00       1/79          CAgent::sendMsg(std::string&, int) [27]
+                0.00    0.00       1/79          CAgent::initial() [52]
+                0.00    0.00       1/79          CAgent::setIdle() [53]
+                0.00    0.00       2/79          create_connection_to_web(int) [71]
+                0.00    0.00       2/79          close_sock_and_erase(int) [69]
+                0.00    0.00       2/79          create_agents(bool) [65]
+                0.00    0.00       2/79          CAgent::signIn() [51]
+                0.00    0.00       4/79          agentReportAlarm(int) [67]
+                0.00    0.00       6/79          create_connection_to_cti(std::string, int, CAgent*) [37]
+                0.00    0.00       7/79          CAgent::handle_message(std::string&, int, bool) [22]
+                0.00    0.00       8/79          CAgent::send_message(int) [21]
+                0.00    0.00       9/79          CAgent::sendMsgEx(std::string&, char const*) [29]
+                0.00    0.00       9/79          CAgent::handle_msg() [25]
+                0.00    0.00       9/79          CAgent::msgParse(std::string&) [28]
+                0.00    0.00      15/79          handle_message(int, std::string) [66]
+[11]     0.0    0.00    0.00      79         CLOG::LOG(char const*, ...) [11]
+                0.00    0.00      96/119         CConf::CConf() [10]
+-----------------------------------------------
+                0.00    0.00       1/65          close_sock_and_erase(int) [69]
+                0.00    0.00       1/65          create_agents(bool) [65]
+                0.00    0.00       1/65          CAgent::GetCauseInfo(rapidxml::xml_node<char>*) [26]
+                0.00    0.00       1/65          CAgent::sendMsg(std::string&, int) [27]
+                0.00    0.00       2/65          CAgent::signIn() [51]
+                0.00    0.00       6/65          CAgent::handle_msg() [25]
+                0.00    0.00       7/65          CAgent::handle_message(std::string&, int, bool) [22]
+                0.00    0.00       8/65          create_connection_to_cti(std::string, int, CAgent*) [37]
+                0.00    0.00       8/65          CAgent::send_message(int) [21]
+                0.00    0.00       9/65          CAgent::sendMsgEx(std::string&, char const*) [29]
+                0.00    0.00       9/65          CAgent::msgParse(std::string&) [28]
+                0.00    0.00      12/65          handle_message(int, std::string) [66]
+[12]     0.0    0.00    0.00      65         CAgent::log() [12]
+                0.00    0.00       1/1           CLOG::CLOG(std::string, bool) [48]
+-----------------------------------------------
+                                  30             rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&) <cycle 1> [9]
+[13]     0.0    0.00    0.00      30         void rapidxml::xml_document<char>::parse_node_contents<0>(char*&, rapidxml::xml_node<char>*) <cycle 1> [13]
+                                  32             rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&) <cycle 1> [9]
+-----------------------------------------------
+                0.00    0.00       1/9           close_sock_and_erase(int) [69]
+                0.00    0.00       3/9           send_message(int) [64]
+                0.00    0.00       5/9           handle_message(int, std::string) [66]
+[14]     0.0    0.00    0.00       9         find_agent(int) [14]
+                0.00    0.00       9/9           find_agentID(int) [15]
+-----------------------------------------------
+                0.00    0.00       9/9           find_agent(int) [14]
+[15]     0.0    0.00    0.00       9         find_agentID(int) [15]
+-----------------------------------------------
+                0.00    0.00       8/8           agentReportAlarm(int) [67]
+[16]     0.0    0.00    0.00       8         CLOG::PRINT(char const*, ...) [16]
+                0.00    0.00      13/119         CConf::CConf() [10]
+-----------------------------------------------
+                0.00    0.00       8/8           CCenter::CCenter() [96]
+[17]     0.0    0.00    0.00       8         std::_Rb_tree<DetailState_t, std::pair<DetailState_t const, std::string>, std::_Select1st<std::pair<DetailState_t const, std::string> >, std::less<DetailState_t>, std::allocator<std::pair<DetailState_t const, std::string> > >::_M_insert_unique(std::pair<DetailState_t const, std::string> const&) [17]
+-----------------------------------------------
+                0.00    0.00       1/7           close_sock_and_erase(int) [69]
+                0.00    0.00       2/7           handle_message(int, std::string) [66]
+                0.00    0.00       4/7           setnonblocking(int) [35]
+[18]     0.0    0.00    0.00       7         CLOG::INFO(char const*, ...) [18]
+                0.00    0.00       9/119         CConf::CConf() [10]
+-----------------------------------------------
+                0.00    0.00       6/6           std::map<std::string, EventType_t, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::~map() [106]
+[19]     0.0    0.00    0.00       6         std::_Rb_tree<std::string, std::pair<std::string const, EventType_t>, std::_Select1st<std::pair<std::string const, EventType_t> >, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, EventType_t> >*) [19]
+-----------------------------------------------
+                0.00    0.00       5/5           handle_message(int, std::string) [66]
+[20]     0.0    0.00    0.00       5         msgSplit(std::vector<std::string, std::allocator<std::string> >&, std::string const&, std::string&) [20]
+                0.00    0.00       5/5           std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&) [23]
+-----------------------------------------------
+                0.00    0.00       2/5           CAgent::sendMsg(std::string&, int) [27]
+                0.00    0.00       3/5           send_message(int) [64]
+[21]     0.0    0.00    0.00       5         CAgent::send_message(int) [21]
+                0.00    0.00       8/65          CAgent::log() [12]
+                0.00    0.00       8/79          CLOG::LOG(char const*, ...) [11]
+-----------------------------------------------
+                0.00    0.00       5/5           handle_message(int, std::string) [66]
+[22]     0.0    0.00    0.00       5         CAgent::handle_message(std::string&, int, bool) [22]
+                0.00    0.00       7/65          CAgent::log() [12]
+                0.00    0.00       7/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       3/3           CAgent::msgParse(std::string&) [28]
+                0.00    0.00       3/3           CAgent::handle_msg() [25]
+-----------------------------------------------
+                0.00    0.00       5/5           msgSplit(std::vector<std::string, std::allocator<std::string> >&, std::string const&, std::string&) [20]
+[23]     0.0    0.00    0.00       5         std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&) [23]
+-----------------------------------------------
+                0.00    0.00       4/4           CAgent::CAgent(bool) [54]
+[24]     0.0    0.00    0.00       4         std::_Deque_base<std::string, std::allocator<std::string> >::_M_initialize_map(unsigned int) [24]
+-----------------------------------------------
+                0.00    0.00       3/3           CAgent::handle_message(std::string&, int, bool) [22]
+[25]     0.0    0.00    0.00       3         CAgent::handle_msg() [25]
+                0.00    0.00       9/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       6/65          CAgent::log() [12]
+                0.00    0.00       1/2           create_connection_to_cti(std::string, int, CAgent*) [37]
+                0.00    0.00       1/1           add_to_epoll(int) [46]
+                0.00    0.00       1/1           std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_insert_unique(std::pair<int const, std::string> const&) [57]
+                0.00    0.00       1/1           CAgent::signIn() [51]
+                0.00    0.00       1/1           CAgent::setIdle() [53]
+-----------------------------------------------
+                0.00    0.00       3/3           CAgent::msgParse(std::string&) [28]
+[26]     0.0    0.00    0.00       3         CAgent::GetCauseInfo(rapidxml::xml_node<char>*) [26]
+                0.00    0.00       1/65          CAgent::log() [12]
+                0.00    0.00       1/1           CLOG::ERROR(char const*, ...) [47]
+-----------------------------------------------
+                0.00    0.00       3/3           CAgent::sendMsgEx(std::string&, char const*) [29]
+[27]     0.0    0.00    0.00       3         CAgent::sendMsg(std::string&, int) [27]
+                0.00    0.00       2/5           CAgent::send_message(int) [21]
+                0.00    0.00       1/65          CAgent::log() [12]
+                0.00    0.00       1/79          CLOG::LOG(char const*, ...) [11]
+-----------------------------------------------
+                0.00    0.00       3/3           CAgent::handle_message(std::string&, int, bool) [22]
+[28]     0.0    0.00    0.00       3         CAgent::msgParse(std::string&) [28]
+                0.00    0.00       9/123         rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&) <cycle 1> [9]
+                0.00    0.00       9/65          CAgent::log() [12]
+                0.00    0.00       9/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       3/3           std::_Rb_tree<std::string, std::pair<std::string const, EventType_t>, std::_Select1st<std::pair<std::string const, EventType_t> >, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::find(std::string const&) [30]
+                0.00    0.00       3/3           CAgent::GetCauseInfo(rapidxml::xml_node<char>*) [26]
+                0.00    0.00       2/2           CAgent::BuildGeneralConf(Parameter_t&, rapidxml::xml_node<char>*) [40]
+                0.00    0.00       1/1           CAgent::BuildIntialConf(ACPInitialConfEvent_t&, rapidxml::xml_node<char>*) [50]
+-----------------------------------------------
+                0.00    0.00       1/3           CAgent::initial() [52]
+                0.00    0.00       1/3           CAgent::signIn() [51]
+                0.00    0.00       1/3           CAgent::setIdle() [53]
+[29]     0.0    0.00    0.00       3         CAgent::sendMsgEx(std::string&, char const*) [29]
+                0.00    0.00       9/65          CAgent::log() [12]
+                0.00    0.00       9/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       3/3           CAgent::sendMsg(std::string&, int) [27]
+-----------------------------------------------
+                0.00    0.00       3/3           CAgent::msgParse(std::string&) [28]
+[30]     0.0    0.00    0.00       3         std::_Rb_tree<std::string, std::pair<std::string const, EventType_t>, std::_Select1st<std::pair<std::string const, EventType_t> >, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::find(std::string const&) [30]
+-----------------------------------------------
+                0.00    0.00       1/3           CCenter::~CCenter() [97]
+                0.00    0.00       1/3           create_agents(bool) [65]
+                0.00    0.00       1/3           CCenter::CCenter() [96]
+[31]     0.0    0.00    0.00       3         std::_Rb_tree<std::string, std::pair<std::string const, CAgent*>, std::_Select1st<std::pair<std::string const, CAgent*> >, std::less<std::string>, std::allocator<std::pair<std::string const, CAgent*> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, CAgent*> >*) [31]
+-----------------------------------------------
+                0.00    0.00       1/3           CCenter::~CCenter() [97]
+                0.00    0.00       1/3           load_config(std::string const&) [34]
+                0.00    0.00       1/3           CCenter::CCenter() [96]
+[32]     0.0    0.00    0.00       3         std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::string> >*) [32]
+-----------------------------------------------
+                0.00    0.00       1/3           create_connection_to_web(int) [71]
+                0.00    0.00       2/3           create_connection_to_cti(std::string, int, CAgent*) [37]
+[33]     0.0    0.00    0.00       3         std::_Rb_tree<int, std::pair<int const, bool>, std::_Select1st<std::pair<int const, bool> >, std::less<int>, std::allocator<std::pair<int const, bool> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<int const, bool> >, std::pair<int const, bool> const&) [33]
+-----------------------------------------------
+                0.00    0.00       1/2           close_sock_and_erase(int) [69]
+                0.00    0.00       1/2           create_agents(bool) [65]
+[34]     0.0    0.00    0.00       2         load_config(std::string const&) [34]
+                0.00    0.00       1/123         rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&) <cycle 1> [9]
+                0.00    0.00       1/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       1/3           std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::string> >*) [32]
+-----------------------------------------------
+                0.00    0.00       2/2           create_connection_to_cti(std::string, int, CAgent*) [37]
+[35]     0.0    0.00    0.00       2         setnonblocking(int) [35]
+                0.00    0.00       4/7           CLOG::INFO(char const*, ...) [18]
+-----------------------------------------------
+                0.00    0.00       2/2           create_agents(bool) [65]
+[36]     0.0    0.00    0.00       2         add_int_to_string(std::string&, int) [36]
+-----------------------------------------------
+                0.00    0.00       1/2           create_agents(bool) [65]
+                0.00    0.00       1/2           CAgent::handle_msg() [25]
+[37]     0.0    0.00    0.00       2         create_connection_to_cti(std::string, int, CAgent*) [37]
+                0.00    0.00       8/65          CAgent::log() [12]
+                0.00    0.00       6/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       2/2           setnonblocking(int) [35]
+                0.00    0.00       2/3           std::_Rb_tree<int, std::pair<int const, bool>, std::_Select1st<std::pair<int const, bool> >, std::less<int>, std::allocator<std::pair<int const, bool> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<int const, bool> >, std::pair<int const, bool> const&) [33]
+-----------------------------------------------
+                0.00    0.00       2/2           CAgent::BuildGeneralConf(Parameter_t&, rapidxml::xml_node<char>*) [40]
+[38]     0.0    0.00    0.00       2         CAgent::BuildAgentInfo(Agent_t&, rapidxml::xml_node<char>*) [38]
+-----------------------------------------------
+                0.00    0.00       2/2           CAgent::BuildGeneralConf(Parameter_t&, rapidxml::xml_node<char>*) [40]
+[39]     0.0    0.00    0.00       2         CAgent::BuildCauseInfo(Cause_t&, rapidxml::xml_node<char>*) [39]
+-----------------------------------------------
+                0.00    0.00       2/2           CAgent::msgParse(std::string&) [28]
+[40]     0.0    0.00    0.00       2         CAgent::BuildGeneralConf(Parameter_t&, rapidxml::xml_node<char>*) [40]
+                0.00    0.00       2/2           CAgent::BuildAgentInfo(Agent_t&, rapidxml::xml_node<char>*) [38]
+                0.00    0.00       2/2           CAgent::BuildCauseInfo(Cause_t&, rapidxml::xml_node<char>*) [39]
+-----------------------------------------------
+                0.00    0.00       2/2           CCenter::CCenter() [96]
+[41]     0.0    0.00    0.00       2         std::_Deque_base<int, std::allocator<int> >::_M_initialize_map(unsigned int) [41]
+-----------------------------------------------
+                0.00    0.00       1/2           CCenter::~CCenter() [97]
+                0.00    0.00       1/2           CCenter::CCenter() [96]
+[42]     0.0    0.00    0.00       2         std::_Rb_tree<int, std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > >, std::_Select1st<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > >, std::less<int>, std::allocator<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > >*) [42]
+-----------------------------------------------
+                0.00    0.00       1/2           CCenter::~CCenter() [97]
+                0.00    0.00       1/2           CCenter::CCenter() [96]
+[43]     0.0    0.00    0.00       2         std::_Rb_tree<int, std::pair<int const, bool>, std::_Select1st<std::pair<int const, bool> >, std::less<int>, std::allocator<std::pair<int const, bool> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, bool> >*) [43]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [120]
+[44]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN6CAgent12send_messageEi [44]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [120]
+[45]     0.0    0.00    0.00       1         _GLOBAL__sub_I_epollfd [45]
+-----------------------------------------------
+                0.00    0.00       1/1           CAgent::handle_msg() [25]
+[46]     0.0    0.00    0.00       1         add_to_epoll(int) [46]
+-----------------------------------------------
+                0.00    0.00       1/1           CAgent::GetCauseInfo(rapidxml::xml_node<char>*) [26]
+[47]     0.0    0.00    0.00       1         CLOG::ERROR(char const*, ...) [47]
+                0.00    0.00       1/119         CConf::CConf() [10]
+-----------------------------------------------
+                0.00    0.00       1/1           CAgent::log() [12]
+[48]     0.0    0.00    0.00       1         CLOG::CLOG(std::string, bool) [48]
+-----------------------------------------------
+                0.00    0.00       1/1           close_sock_and_erase(int) [69]
+[49]     0.0    0.00    0.00       1         CAgent::find_sock_type(int) [49]
+-----------------------------------------------
+                0.00    0.00       1/1           CAgent::msgParse(std::string&) [28]
+[50]     0.0    0.00    0.00       1         CAgent::BuildIntialConf(ACPInitialConfEvent_t&, rapidxml::xml_node<char>*) [50]
+-----------------------------------------------
+                0.00    0.00       1/1           CAgent::handle_msg() [25]
+[51]     0.0    0.00    0.00       1         CAgent::signIn() [51]
+                0.00    0.00       2/65          CAgent::log() [12]
+                0.00    0.00       2/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       1/3           CAgent::sendMsgEx(std::string&, char const*) [29]
+-----------------------------------------------
+                0.00    0.00       1/1           create_agents(bool) [65]
+[52]     0.0    0.00    0.00       1         CAgent::initial() [52]
+                0.00    0.00       1/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       1/3           CAgent::sendMsgEx(std::string&, char const*) [29]
+-----------------------------------------------
+                0.00    0.00       1/1           CAgent::handle_msg() [25]
+[53]     0.0    0.00    0.00       1         CAgent::setIdle() [53]
+                0.00    0.00       1/79          CLOG::LOG(char const*, ...) [11]
+                0.00    0.00       1/3           CAgent::sendMsgEx(std::string&, char const*) [29]
+-----------------------------------------------
+                0.00    0.00       1/1           create_agents(bool) [65]
+[54]     0.0    0.00    0.00       1         CAgent::CAgent(bool) [54]
+                0.00    0.00     113/123         rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&) <cycle 1> [9]
+                0.00    0.00       4/4           std::_Deque_base<std::string, std::allocator<std::string> >::_M_initialize_map(unsigned int) [24]
+-----------------------------------------------
+                0.00    0.00       1/1           CCenter::~CCenter() [97]
+[55]     0.0    0.00    0.00       1         std::_Rb_tree<DetailState_t, std::pair<DetailState_t const, std::string>, std::_Select1st<std::pair<DetailState_t const, std::string> >, std::less<DetailState_t>, std::allocator<std::pair<DetailState_t const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<DetailState_t const, std::string> >*) [55]
+-----------------------------------------------
+                0.00    0.00       1/1           create_agents(bool) [65]
+[56]     0.0    0.00    0.00       1         std::_Rb_tree<std::string, std::pair<std::string const, CAgent*>, std::_Select1st<std::pair<std::string const, CAgent*> >, std::less<std::string>, std::allocator<std::pair<std::string const, CAgent*> > >::equal_range(std::string const&) [56]
+-----------------------------------------------
+                0.00    0.00       1/1           CAgent::handle_msg() [25]
+[57]     0.0    0.00    0.00       1         std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_insert_unique(std::pair<int const, std::string> const&) [57]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [44] _GLOBAL__sub_I__ZN6CAgent12send_messageEi [26] CAgent::GetCauseInfo(rapidxml::xml_node<char>*) [13] void rapidxml::xml_document<char>::parse_node_contents<0>(char*&, rapidxml::xml_node<char>*)
+  [45] _GLOBAL__sub_I_epollfd [21] CAgent::send_message(int) [24] std::_Deque_base<std::string, std::allocator<std::string> >::_M_initialize_map(unsigned int)
+  [14] find_agent(int)        [38] CAgent::BuildAgentInfo(Agent_t&, rapidxml::xml_node<char>*) [41] std::_Deque_base<int, std::allocator<int> >::_M_initialize_map(unsigned int)
+  [34] load_config(std::string const&) [39] CAgent::BuildCauseInfo(Cause_t&, rapidxml::xml_node<char>*) [23] std::vector<std::string, std::allocator<std::string> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::string*, std::vector<std::string, std::allocator<std::string> > >, std::string const&)
+  [46] add_to_epoll(int)      [49] CAgent::find_sock_type(int) [17] std::_Rb_tree<DetailState_t, std::pair<DetailState_t const, std::string>, std::_Select1st<std::pair<DetailState_t const, std::string> >, std::less<DetailState_t>, std::allocator<std::pair<DetailState_t const, std::string> > >::_M_insert_unique(std::pair<DetailState_t const, std::string> const&)
+  [15] find_agentID(int)      [22] CAgent::handle_message(std::string&, int, bool) [55] std::_Rb_tree<DetailState_t, std::pair<DetailState_t const, std::string>, std::_Select1st<std::pair<DetailState_t const, std::string> >, std::less<DetailState_t>, std::allocator<std::pair<DetailState_t const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<DetailState_t const, std::string> >*)
+  [35] setnonblocking(int)    [50] CAgent::BuildIntialConf(ACPInitialConfEvent_t&, rapidxml::xml_node<char>*) [30] std::_Rb_tree<std::string, std::pair<std::string const, EventType_t>, std::_Select1st<std::pair<std::string const, EventType_t> >, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::find(std::string const&)
+  [36] add_int_to_string(std::string&, int) [40] CAgent::BuildGeneralConf(Parameter_t&, rapidxml::xml_node<char>*) [19] std::_Rb_tree<std::string, std::pair<std::string const, EventType_t>, std::_Select1st<std::pair<std::string const, EventType_t> >, std::less<std::string>, std::allocator<std::pair<std::string const, EventType_t> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, EventType_t> >*)
+  [37] create_connection_to_cti(std::string, int, CAgent*) [12] CAgent::log() [56] std::_Rb_tree<std::string, std::pair<std::string const, CAgent*>, std::_Select1st<std::pair<std::string const, CAgent*> >, std::less<std::string>, std::allocator<std::pair<std::string const, CAgent*> > >::equal_range(std::string const&)
+  [20] msgSplit(std::vector<std::string, std::allocator<std::string> >&, std::string const&, std::string&) [51] CAgent::signIn() [31] std::_Rb_tree<std::string, std::pair<std::string const, CAgent*>, std::_Select1st<std::pair<std::string const, CAgent*> >, std::less<std::string>, std::allocator<std::pair<std::string const, CAgent*> > >::_M_erase(std::_Rb_tree_node<std::pair<std::string const, CAgent*> >*)
+  [11] CLOG::LOG(char const*, ...) [52] CAgent::initial() [57] std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_insert_unique(std::pair<int const, std::string> const&)
+  [18] CLOG::INFO(char const*, ...) [27] CAgent::sendMsg(std::string&, int) [32] std::_Rb_tree<int, std::pair<int const, std::string>, std::_Select1st<std::pair<int const, std::string> >, std::less<int>, std::allocator<std::pair<int const, std::string> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::string> >*)
+  [47] CLOG::ERROR(char const*, ...) [53] CAgent::setIdle() [42] std::_Rb_tree<int, std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > >, std::_Select1st<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > >, std::less<int>, std::allocator<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::queue<std::string, std::deque<std::string, std::allocator<std::string> > > > >*)
+  [16] CLOG::PRINT(char const*, ...) [28] CAgent::msgParse(std::string&) [33] std::_Rb_tree<int, std::pair<int const, bool>, std::_Select1st<std::pair<int const, bool> >, std::less<int>, std::allocator<std::pair<int const, bool> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<int const, bool> >, std::pair<int const, bool> const&)
+  [48] CLOG::CLOG(std::string, bool) [29] CAgent::sendMsgEx(std::string&, char const*) [43] std::_Rb_tree<int, std::pair<int const, bool>, std::_Select1st<std::pair<int const, bool> >, std::less<int>, std::allocator<std::pair<int const, bool> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, bool> >*)
+  [10] CConf::CConf()         [54] CAgent::CAgent(bool)    [1] <cycle 1>
+  [25] CAgent::handle_msg()    [9] rapidxml::xml_node<char>* rapidxml::xml_document<char>::parse_element<0>(char*&)

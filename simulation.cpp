@@ -18,6 +18,7 @@ extern CCenter center;
 //extern map <int,string> center.socket_agentID_map;
 //extern map <string,CAgent*> center.agentID_agent_map;
 extern int epollfd;
+extern int write_epollfd;
 extern CLOG* simu_log;
 extern CConf* conf;
 //extern queue<int> center.socket_Not_In_Epoll;
@@ -137,6 +138,10 @@ int create_agents(bool is_debug)
 		center.agentID_agent_map.insert(make_pair(string(agent->m_agentID), agent));
 		
 		agent->initial();
+		/*if (i%2 == 0)
+		{
+			sleep(1);
+		}*/
 	}
 	return 0;
 }
@@ -323,14 +328,10 @@ int all_report(int sockFd)
 	*/
 }
 
-
-
-
-
 int handle_web_message(int sockFd, string& message)
 {
 
-	simu_log->LOG("收到服务器套接字 %d 的消息，内容为%s",sockFd,message.c_str());
+	//simu_log->LOG("收到服务器套接字 %d 的消息，内容为%s",sockFd,message.c_str());
 	if(message == "ALL_INITIAL")
 	{
 		return all_initial();
@@ -457,6 +458,7 @@ int msgSplit(vector<string>& vec, const string& message, string& endFlag)
 int handle_message(int sockFd, string message)
 {
 	//simu_log->LOG("进入%s中,收到%s", "handle_message", message.c_str());
+	//simu_log->PRINT("handle_message");
 	int n;
 	int ret = 0;
 	vector<string> msg;
@@ -494,7 +496,7 @@ int handle_message(int sockFd, string message)
 				{
 					agent->m_has_initial_port = true;
 					agent->m_src_initial_port = htons(sin.sin_port);
-					agent->log()->INFO("座席initial端口号为%d", agent->m_src_initial_port);
+					agent->log()->LOG("座席initial端口号为%d", agent->m_src_initial_port);
 				}
 			}
 			else if(agent->m_has_signIn_port == false)
@@ -506,7 +508,7 @@ int handle_message(int sockFd, string message)
 				{
 					agent->m_has_signIn_port = true;
 					agent->m_src_signIn_port = htons(sin.sin_port);
-					agent->log()->INFO("座席signIn端口号为%d", agent->m_src_signIn_port);
+					agent->log()->LOG("座席signIn端口号为%d", agent->m_src_signIn_port);
 				}
 			}
 			//simu_log->LOG("收到的是agent消息");
@@ -520,6 +522,7 @@ int handle_message(int sockFd, string message)
 			agent->log()->LOG("从handle_message入口处收到消息%s", message.c_str());
 			string endFlag("</acpMessage>");
 			int _ret = msgSplit(msg, message, endFlag);
+			//int _ret = 0;
 			if(_ret < 0)
 			{
 				agent->log()->ERROR("msgSplit失败");
@@ -540,7 +543,7 @@ int handle_message(int sockFd, string message)
 			for(int i=0; i < handle_size; i++)
 			{
 				n = agent->handle_message(msg[i], sockFd);
-				//agent->log()->INFO("从handle_message函数体返回%d", n);
+				//agent->log()->LOG("545 handle_message %s ", msg[i].c_str());
 				if(n < 0)
 				{
 					//simu_log -> ERROR("处理agent_message时失败:%s",msg[i].c_str());
@@ -604,7 +607,7 @@ int send_message(int sockFd)
 
 int setnonblocking(int sockFd)
 {
-	simu_log->INFO("进入%s中", "setnonblocking");
+	//simu_log->INFO("进入%s中", "setnonblocking");
 	if(sockFd <= 0)
 	{
 		simu_log->ERROR("待设置为nonblocking的句柄为负");
@@ -621,7 +624,7 @@ int setnonblocking(int sockFd)
 		simu_log->ERROR("error set flag to O_NONBLOCK for %d :%s",sockFd,strerror(errno));
 		return -1;
 	}
-	simu_log->INFO("离开%s中", "setnonblocking");
+	//simu_log->INFO("离开%s中", "setnonblocking");
 	return 0; 
 }
 /*
@@ -690,7 +693,7 @@ string describe_detail_state(DetailState_t)
 
 int close_sock_and_erase(int sockFd)
 {
-	simu_log->INFO("试图close_sock_and_erase%d", sockFd);
+	//simu_log->INFO("试图close_sock_and_erase%d", sockFd);
 	
 	if(epoll_ctl(epollfd, EPOLL_CTL_DEL, sockFd, NULL) < 0)
 	{
@@ -698,7 +701,14 @@ int close_sock_and_erase(int sockFd)
 		simu_log->ERROR("%s while deleting fd %d",strerror(errno),sockFd);
 		//return -1;
 	}
-	close(sockFd);
+	if(epoll_ctl(write_epollfd, EPOLL_CTL_DEL, sockFd, NULL) < 0)
+	{
+		
+		simu_log->ERROR("%s while deleting fd %d",strerror(errno),sockFd);
+		//return -1;
+	}
+	shutdown(sockFd, SHUT_RDWR);
+	
 	map <int, queue<string> >::iterator iter;
 	iter = center.webSocket.find(sockFd);
 	if(iter != center.webSocket.end())
@@ -762,7 +772,7 @@ int close_sock_and_erase(int sockFd)
 int create_connection_to_web(int Port)
 {
 
-	simu_log->LOG("进入create_connection_to_web");
+	//simu_log->LOG("进入create_connection_to_web");
 	int sockFd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockFd < 0)
 	{

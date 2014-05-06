@@ -1,0 +1,5 @@
+[16:14:17]INFO è¿›å…¥CAgentçš„handle_message: <acpMessage ver="2.0.0"><header><sessionID></sessionID></header><body type="response" name="Initial"><parameter code="0" desc="" ip="211.150.71.185" port="14801"/></body></acpMessage>
+[16:14:17]ERROR GetCauseInfo é”™è¯¯
+[16:14:17]INFO è¿›å…¥CAgentçš„handle_message: 2 00000227 020115 off SignIn <acpMessage ver="2.0.0" time="20140506161422"><header><sessionID>999999-0000029999991005</sessionID><serialID></serialID><serviceID></serviceID><timeStamp></timeStamp></header><body type="response" name="SignIn"><agent vccID="999999" agentID="0000109999991005" deviceID="0000029999991005" agentStatus="0" phoneStatus="0" master="0"/><cause code="2110" desc="×ùÏ¯²»´æÔÚ"/></body></acpMessage>
+[16:14:17]ERROR æ”¶åˆ°é”™è¯¯æ¶ˆæ¯ï¼Œcause codeä¸º2110ï¼Œå¤±è´¥æè¿°ä¸º×ùÏ¯²»´æÔÚ
+[16:14:17]ERROR signInå¤±è´¥,é”™è¯¯ç ä¸º2110, æè¿°ä¸º×ùÏ¯²»´æÔÚ

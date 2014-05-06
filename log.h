@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <memory.h>
-
+#include <signal.h>
 class CLOG
 {
 public:
@@ -26,6 +26,7 @@ public:
 	int logFd;
 	struct timeval tv;
 	struct timezone tz;
+	sigset_t sigset;
 private:
 	char m_asctime[32];
 	char* getTime()

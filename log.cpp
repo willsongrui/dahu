@@ -1,10 +1,13 @@
 #include <unistd.h>
+#include <signal.h>
 #include "log.h"
 using namespace std;
 
 CLOG::CLOG(string logFile, bool debug) : is_debug(debug)
 {
 	//printf("进入CLOG的构造函数");
+	sigemptyset(&sigset);
+	sigaddset(&sigset, SIGALRM);
 	unlink(logFile.c_str());
 	int fs = open(logFile.c_str(),O_WRONLY|O_CREAT,S_IRUSR|S_IWUSR);
 	if(fs < 0)
@@ -53,11 +56,13 @@ void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 		return;
 	char temp[2000];
 	//char temp[1024];
-	memset(temp,0,sizeof(temp));
+	memset(temp,0, sizeof(temp));
 	vsnprintf(temp, sizeof(temp), fmt, arg);
 	if(temp[strlen(temp)-1] == '\n')
 		temp[strlen(temp)-1] = '\0';
 	
+	sigprocmask(SIG_BLOCK, &sigset, NULL);
+
 	char buffer[2000];
 	//char buffer[1024];
 	snprintf(buffer, sizeof(buffer), "[%s]%s %s\n",getTime(),type, temp);
@@ -73,13 +78,14 @@ void CLOG::write_to_log(const char* type, const char* fmt, va_list arg)
 	}
 	
 	//printf("%s",buffer);
-	if((is_debug == true)||(strcmp(type, "") == 0 )||(strcmp(type, "ERROR") == 0))
+	if((is_debug == true)||(strcmp(type, "") == 0)||(strcmp(type, "ERROR") == 0)||(strcmp(type, "INFO") == 0))
 	{
 		if(write(logFd, buffer, strlen(buffer)) <0)
 		{
 			printf("写日志文件失败,失败原因 : %s\n",strerror(errno));
 		}
 	}
+	sigprocmask(SIG_UNBLOCK, &sigset, NULL);
 }
 
 void CLOG::INFO(const char* fmt, ...)

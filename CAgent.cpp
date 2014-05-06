@@ -119,13 +119,13 @@ int CAgent::sendMsg(string& str, int type)
 	if(type == 1)
 	{
 		m_signIn_msgToSend.push(str);
-		log()->LOG("将消息发送到signIn队列中：%s",str.c_str());
+		//log()->LOG("将消息发送到signIn队列中：%s",str.c_str());
 		center.ready_to_send[m_signIn_sock] = true;
 	}
 	else
 	{
 		m_initial_msgToSend.push(str);
-		log()->LOG("成功将消息发送到Initial队列中：%s",str.c_str());
+		//log()->LOG("成功将消息发送到Initial队列中：%s",str.c_str());
 		center.ready_to_send[m_initial_sock] = true;
 	}
 	
@@ -133,7 +133,7 @@ int CAgent::sendMsg(string& str, int type)
 }
 int CAgent::sendMsgEx(string& msg,const char* strName)
 {
-	log()->LOG("进入sendMsgEx, msg = %s, strName = %s", msg.c_str(), strName);
+	//log()->LOG("进入sendMsgEx, msg = %s, strName = %s", msg.c_str(), strName);
 	int type = 1;
 	if(strcmp(strName, "Initial")==0)
 		type = 0;
@@ -143,9 +143,9 @@ int CAgent::sendMsgEx(string& msg,const char* strName)
 	//log()->LOG(msg.c_str());
 	snprintf(str, 500, "%s %s %s %s","1000", strTrace, strName, msg.c_str());
 	string temp = string(str);
-	log()->LOG("离开sendMsgEx");
+	//log()->LOG("离开sendMsgEx");
 	int ret = sendMsg(temp, type);
-	log()->LOG("从sendMsg中返回%d", ret);
+	//log()->LOG("从sendMsg中返回%d", ret);
 	return ret;
 }
 int CAgent::sendHeartBeat()
@@ -233,7 +233,7 @@ int CAgent::handle_message(string& msg, int sockFd, bool quick)
 
 	int type = find_sock_type(sockFd);
 	//log()->LOG("ALIVE0");
-	log()->LOG("进入CAgent的handle_message: %s", msg.c_str());
+	log()->INFO("进入CAgent的handle_message: %s", msg.c_str());
 	size_t pos = msg.find("<acpMessage");
 	if(pos == string::npos)
 	{
@@ -299,7 +299,7 @@ int CAgent::find_sock_type(int sockFd)
 //根据成员变量 m_acpEvent
 int CAgent::handle_msg()
 {
-	log()->LOG("进入%s", "handle_msg");
+	//log()->LOG("进入%s", "handle_msg");
 	ACPEvent_t* msg = (ACPEvent_t*)&m_acpEvent;
 	if(msg == NULL)
 		return -1;
@@ -307,7 +307,7 @@ int CAgent::handle_msg()
     {
 	case ACP_Initial_CONF:
 		{
-			if(m_acpEvent.event.acpConfirmation.u.initialConf.code == 0)
+			if(m_cause_code == 0)
 			{
 				log()->LOG("成功收到initial Response消息");
 				m_signIn_IP = msg->event.acpConfirmation.u.initialConf.ip;
@@ -341,19 +341,20 @@ int CAgent::handle_msg()
 			}
 			else
 			{
-				log()->ERROR("Initial失败,错误码是%d,描述为%s", msg->event.acpConfirmation.u.initialConf.code, msg->event.acpConfirmation.u.initialConf.desc);
+				log()->ERROR("Initial失败,错误码是%d,描述为%s", m_cause_code, m_cause_desc.c_str());
 				m_lMsgReceived = MSG_FAILURE;
 				return -1;
 			}
 			break;
 		}
 	case ACP_SignIn_CONF:
-			if(msg->event.acpConfirmation.u.signOutcConf.parameter.cause.code == 0)
+			if(m_cause_code == 0)
 			{
 				log()->LOG("成功收到signIn Response消息");
 				int idleStatus = msg->event.acpConfirmation.u.signOutcConf.agentParam.idleStatus;
 				if(idleStatus == 0)
 				{
+					m_is_sign_in = true;
 					return setIdle();
 				}
 				else
@@ -383,7 +384,7 @@ int CAgent::handle_msg()
 			}
 			else
 			{
-				log()->ERROR("signIn失败,错误码为%d, 描述为%s",msg->event.acpConfirmation.u.signOutcConf.parameter.cause.code, msg->event.acpConfirmation.u.signOutcConf.parameter.cause.desc);
+				log()->ERROR("signIn失败,错误码为%d, 描述为%s", m_cause_code, m_cause_desc.c_str());
 				//setAgentStatusEx(msg->event.acpConfirmation.u.signOutcConf.parameter.agent.agentID,emSignIn,0);
 				return -1;
 			}
@@ -397,7 +398,7 @@ int CAgent::handle_msg()
 			}
 			else
 			{
-				log()->ERROR("signOut失败，错误码为%d, 描述为%s", msg->event.acpConfirmation.u.generalConf.cause.code, msg->event.acpConfirmation.u.generalConf.cause.desc);
+				log()->ERROR("signOut失败，错误码为%d, 描述为%s", m_cause_code, m_cause_desc.c_str());
 				//setAgentStatusEx(msg->event.acpConfirmation.u.generalConf.agent.agentID,emSignOut,0);
 				return -1;
 			}
@@ -405,7 +406,7 @@ int CAgent::handle_msg()
 		}
 	case ACP_SetBusy_CONF:
 		{
-			if(msg->event.acpConfirmation.u.generalConf.cause.code == 0)
+			if(m_cause_code == 0)
 			{
 				setAgentStatus(AGENT_BUSY);
 				/*setAgentStatusEx(msg->event.acpConfirmation.u.generalConf.agent.agentID,emSetBusy,1);
@@ -415,7 +416,7 @@ int CAgent::handle_msg()
 			}
 			else
 			{
-				log()->ERROR("setBusy失败，错误码为%d，描述为%s", msg->event.acpConfirmation.u.generalConf.cause.code, msg->event.acpConfirmation.u.generalConf.cause.desc);
+				log()->ERROR("setBusy失败，错误码为%d，描述为%s", m_cause_code, m_cause_desc.c_str());
 				//setAgentStatusEx(msg->event.acpConfirmation.u.generalConf.agent.agentID,emSetBusy,1);
 				return -1;
 			}
@@ -423,7 +424,7 @@ int CAgent::handle_msg()
 		}
  	case ACP_SetIdle_CONF:
 		{
-			if(msg->event.acpConfirmation.u.generalConf.cause.code == 0)
+			if(m_cause_code == 0)
 			{
 				setAgentStatus(AGENT_IDLE);
 
@@ -431,7 +432,8 @@ int CAgent::handle_msg()
 			}
 			else
 			{
-				log()->ERROR("setIdle失败，错误码为%d，描述为%s", msg->event.acpConfirmation.u.generalConf.cause.code, msg->event.acpConfirmation.u.generalConf.cause.desc);
+				log()->ERROR("setIdle失败，错误码为%d，描述为%s", m_cause_code, m_cause_desc.c_str());
+				setAgentStatus(AGENT_IDLE);
 				//setAgentStatusEx(msg->event.acpConfirmation.u.generalConf.agent.agentID,emSetIdle,0);
 				return -1;
 			}
@@ -458,7 +460,7 @@ int CAgent::handle_msg()
 		break;
 	case ACP_ReleaseCall_CONF:
 		{
-			if(msg->event.acpConfirmation.u.generalConf.cause.code == 0)
+			if(m_cause_code == 0)
 			{
 				log()->LOG("ReleaseCall成功");
 				//setAgentStatusEx(msg->event.acpConfirmation.u.generalConf.agent.agentID,emReleaseCall,1);
@@ -836,7 +838,7 @@ int CAgent::BuildGeneralEventReport(ACPEventReportEvent_t &generalEventReport,xm
 	generalEventReport.agent.phoneStatus = (PhoneState_t)atoi(sXmlGetAttrValue(hParameter, "phoneStatus"));
 	generalEventReport.agent.master = atoi(sXmlGetAttrValue(hParameter, "master"));
 	*/
-	if((agentRet<0) || (causeRet<0))
+	if((agentRet < 0) || (causeRet < 0))
 	{
 		log()->ERROR("BuildGeneralEventReport错误");
 		return -1;
@@ -989,7 +991,7 @@ int CAgent::GetCauseInfo(xml_node<>* body)
 		log()->ERROR("GetCauseInfo 错误");
 		return -1;
 	}	
-	if(strcmp(" ", code->value())==0)
+	if(strcmp(" ", code->value()) != 0)
 	{
 		m_cause_code = atoi(code->value());
 		m_cause_desc = string(desc->value());
@@ -1017,6 +1019,7 @@ int CAgent::msgParse(string& msg)
 {
 	//log()->LOG("msgParse处理消息%s", msg.c_str());
 	//log()->LOG("消息长度为%d", msg.length());
+	//log()->LOG("enter msgParse %s", msg.c_str());
 	xml_document<> doc;
 	char str_msg[1500];
 	snprintf(str_msg, sizeof(str_msg), "%s", msg.c_str());

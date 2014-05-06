@@ -1,8 +1,54 @@
-[20:17:25] 当前共有3个座席状态为：AGENT_FRESH
-[20:17:25] 当前共有0个座席状态为：AGENT_INITIAL
-[20:17:25] 当前共有0个座席状态为：AGENT_SIGNIN
-[20:17:25] 当前共有97个座席状态为：AGENT_IDLE
-[20:17:25] 当前共有0个座席状态为：AGENT_BUSY
-[20:17:25] 当前共有0个座席状态为：AGENT_ANSWERING
-[20:17:25] 当前共有0个座席状态为：AGENT_RELEASE
-[20:17:25] 当前共有0个座席状态为：AGENT_SIGNOUT
+[16:14:17]INFO 读取配置文件成功
+[16:14:17]INFO EPOLL加载成功
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:17]ERROR handle_message失败
+[16:14:18]ERROR handle_message失败
+[16:14:27]INFO 进入alarm中
+[16:14:27]INFO 当前座席ID 0000109999991000 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 28
+[16:14:27]INFO 当前座席ID 0000109999991001 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 29
+[16:14:27]INFO 当前座席ID 0000109999991002 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 30
+[16:14:27]INFO 当前座席ID 0000109999991003 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 33
+[16:14:27]INFO 当前座席ID 0000109999991004 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 32
+[16:14:27]INFO 当前座席ID 0000109999991005 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 31
+[16:14:27]INFO 当前座席ID 0000109999991006 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 34
+[16:14:27]INFO 当前座席ID 0000109999991007 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 36
+[16:14:27]INFO 当前座席ID 0000109999991008 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 35
+[16:14:27]INFO 当前座席ID 0000109999991009 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 37
+[16:14:27] 当前共有0个座席状态为：AGENT_FRESH
+[16:14:27] 当前共有10个座席状态为：AGENT_INITIAL
+[16:14:27] 当前共有0个座席状态为：AGENT_SIGNIN
+[16:14:27] 当前共有0个座席状态为：AGENT_IDLE
+[16:14:27] 当前共有0个座席状态为：AGENT_BUSY
+[16:14:27] 当前共有0个座席状态为：AGENT_ANSWERING
+[16:14:27] 当前共有0个座席状态为：AGENT_RELEASE
+[16:14:27] 当前共有0个座席状态为：AGENT_SIGNOUT
+[16:14:28]ERROR EINTR, continue
+[16:14:36]ERROR EINTR, continue
+[16:14:40]ERROR EINTR, continue
+[16:14:45]ERROR EINTR, continue
+[16:14:47]INFO 进入alarm中
+[16:14:47]INFO 当前座席ID 0000109999991000 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 28
+[16:14:47]INFO 当前座席ID 0000109999991001 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 29
+[16:14:47]INFO 当前座席ID 0000109999991002 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 30
+[16:14:47]INFO 当前座席ID 0000109999991003 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 33
+[16:14:47]INFO 当前座席ID 0000109999991004 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 32
+[16:14:47]INFO 当前座席ID 0000109999991005 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 31
+[16:14:47]INFO 当前座席ID 0000109999991006 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 34
+[16:14:47]INFO 当前座席ID 0000109999991007 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 36
+[16:14:47]INFO 当前座席ID 0000109999991008 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 35
+[16:14:47]INFO 当前座席ID 0000109999991009 状态为 AGENT_INITIAL，initial_socket为 -999， sign_socket为 37
+[16:14:47] 当前共有0个座席状态为：AGENT_FRESH
+[16:14:47] 当前共有10个座席状态为：AGENT_INITIAL
+[16:14:47] 当前共有0个座席状态为：AGENT_SIGNIN
+[16:14:47] 当前共有0个座席状态为：AGENT_IDLE
+[16:14:47] 当前共有0个座席状态为：AGENT_BUSY
+[16:14:47] 当前共有0个座席状态为：AGENT_ANSWERING
+[16:14:47] 当前共有0个座席状态为：AGENT_RELEASE
+[16:14:47] 当前共有0个座席状态为：AGENT_SIGNOUT

@@ -2,6 +2,10 @@
 #ifndef __simulation__
 #define __simulation__
 #include "simu_def.h"
+
+
+
+//int sendAgentReport();
 int handle_message(int sockFd, std::string message);
 int send_message(int sockFd);
 int non_block_connect(std::string ip, int port);
